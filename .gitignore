@@ -1,0 +1,13 @@
+# IntelliJ files
+.idea/
+
+# Compiled files
+out/
+build/
+
+# Package Files
+*.jar
+
+# Gradle
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
