@@ -1,6 +1,7 @@
 package com.github.frozensync
 
 import com.github.frozensync.command.CommandRegistry
+import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
 import com.github.frozensync.monitoring.MonitoringCommandSet
 import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.DiscordClientBuilder
@@ -13,6 +14,7 @@ fun main() {
     val commandRepository = CommandRegistry
         .register(MonitoringCommandSet)
         .register(FunCommandSet)
+        .register(WordSnakeCommandSet)
 
     client.eventDispatcher.on(MessageCreateEvent::class.java)
         .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }
