@@ -31,5 +31,14 @@ object WordSnakeCommandSet : CommandSet {
                 }
                 .then()
         }
+
+        this["currentturn"] = { event ->
+            event.message.channel
+                .flatMap { channel ->
+                    val result = StringBuilder().appendln(game.lastWord).append(game.currentTurn).toString()
+                    channel.createMessage(result)
+                }
+                .then()
+        }
     }
 }
