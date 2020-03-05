@@ -7,15 +7,15 @@ internal class WordSnakeGame(playerNames: List<String>) {
 
     val currentTurn
         get() = "Turn $turn: ${playerQueue.peek().name}"
-    val lastWord
-        get() = _lastWord
+    val currentWord
+        get() = "Word: $_lastWord"
 
     val logs = mutableListOf<String>()
     val currentPrompt
         get() = logs.last()
 
     private val players: List<Player> = playerNames.map { Player(it) }
-    private val playerQueue: Queue<Player> = ArrayDeque(players)
+    private val playerQueue: Deque<Player> = ArrayDeque(players)
     private var turn = 1
 
     private val words: MutableSet<String> = LinkedHashSet(128)
@@ -39,7 +39,7 @@ internal class WordSnakeGame(playerNames: List<String>) {
         playerQueue.offer(player)
         turn += 1
 
-        val log = StringBuilder().appendln(word).appendln(currentTurn).toString()
+        val log = StringBuilder().appendln(currentWord).appendln(currentTurn).toString()
         logs.add(log)
 
         return true
@@ -66,6 +66,27 @@ internal class WordSnakeGame(playerNames: List<String>) {
         numberOfCharacters += word.length
 
         return true
+    }
+
+    fun undo() {
+        val lastWord = dropLastWord()
+
+        val player = playerQueue.removeLast()
+        playerQueue.offerFirst(player)
+        turn -= 1
+
+        val log = StringBuilder().appendln("Undone $lastWord").appendln(currentWord).appendln(currentTurn).toString()
+        logs.add(log)
+    }
+
+    private fun dropLastWord(): String {
+        val lastWord = words.last()
+        words.remove(lastWord)
+
+        _lastWord = words.last()
+        numberOfCharacters -= lastWord.length
+
+        return lastWord
     }
 
     fun getStatistics() = SnakeSummaryStatistics(numberOfCharacters, words.size)

@@ -32,10 +32,17 @@ object WordSnakeCommandSet : CommandSet {
                 .then()
         }
 
+        this["undo"] = { event ->
+            event.message.channel
+                .doOnNext { game.undo() }
+                .flatMap { channel -> channel.createMessage(game.currentPrompt) }
+                .then()
+        }
+
         this["currentturn"] = { event ->
             event.message.channel
                 .flatMap { channel ->
-                    val result = StringBuilder().appendln(game.lastWord).append(game.currentTurn).toString()
+                    val result = StringBuilder().appendln(game.currentWord).append(game.currentTurn).toString()
                     channel.createMessage(result)
                 }
                 .then()
