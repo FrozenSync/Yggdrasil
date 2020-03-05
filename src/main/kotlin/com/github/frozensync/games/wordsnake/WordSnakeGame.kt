@@ -19,7 +19,7 @@ internal class WordSnakeGame(playerNames: List<String>) {
     private var turn = 1
 
     private val words: MutableSet<String> = LinkedHashSet(128)
-    private var _lastWord = ""
+    private var _lastWord: String? = null
     private var numberOfCharacters = 0
 
     init {
@@ -31,17 +31,9 @@ internal class WordSnakeGame(playerNames: List<String>) {
     }
 
     fun next(word: String): Boolean {
-        if (_lastWord.isNotEmpty() && _lastWord.last() != word.first()) {
-            logs.add("$word does not start with the last letter of $_lastWord")
+        if (!appendWord(word)) {
             return false
         }
-        val added = words.add(word)
-        if (!added) {
-            logs.add("$word has already been used")
-            return false
-        }
-        _lastWord = word
-        numberOfCharacters += word.length
 
         val player = playerQueue.remove()
         playerQueue.offer(player)
@@ -49,6 +41,29 @@ internal class WordSnakeGame(playerNames: List<String>) {
 
         val log = StringBuilder().appendln(word).appendln(currentTurn).toString()
         logs.add(log)
+
+        return true
+    }
+
+    private fun appendWord(word: String): Boolean {
+        if (word.isBlank()) {
+            logs.add("Words cannot be blank")
+            return false
+        }
+        val lastWord = _lastWord
+        if (lastWord != null && lastWord.last() != word.first()) {
+            logs.add("\"$word\" does not start with the last letter of \"$lastWord\"")
+            return false
+        }
+
+        val added = words.add(word)
+        if (!added) {
+            logs.add("$word has already been used")
+            return false
+        }
+
+        _lastWord = word
+        numberOfCharacters += word.length
 
         return true
     }
