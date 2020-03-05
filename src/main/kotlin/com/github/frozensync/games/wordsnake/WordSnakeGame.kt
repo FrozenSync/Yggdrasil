@@ -20,6 +20,7 @@ internal class WordSnakeGame(playerNames: List<String>) {
 
     private val words: MutableSet<String> = LinkedHashSet(128)
     private var _lastWord = ""
+    private var numberOfCharacters = 0
 
     init {
         val initialLogBuilder = StringBuilder().appendln("A new game has been created with the following players:")
@@ -34,16 +35,13 @@ internal class WordSnakeGame(playerNames: List<String>) {
             logs.add("$word does not start with the last letter of $_lastWord")
             return false
         }
-
         val added = words.add(word)
         if (!added) {
             logs.add("$word has already been used")
             return false
         }
-
-        words.add(word)
         _lastWord = word
-        words.last()
+        numberOfCharacters += word.length
 
         val player = playerQueue.remove()
         playerQueue.offer(player)
@@ -54,6 +52,10 @@ internal class WordSnakeGame(playerNames: List<String>) {
 
         return true
     }
+
+    fun getStatistics() = SnakeSummaryStatistics(numberOfCharacters, words.size)
 }
 
 internal data class Player(val name: String, var isEliminated: Boolean = false)
+
+internal data class SnakeSummaryStatistics(val size: Int, val numberOfWords: Int)

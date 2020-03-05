@@ -40,5 +40,18 @@ object WordSnakeCommandSet : CommandSet {
                 }
                 .then()
         }
+
+        this["snakestats"] = { event ->
+            event.message.channel
+                .flatMap { channel ->
+                    val statistics = game.getStatistics()
+                    val result =
+                        """Size: ${statistics.size}
+                            |Number of words: ${statistics.numberOfWords}
+                        """.trimMargin()
+                    channel.createMessage(result)
+                }
+                .then()
+        }
     }
 }
