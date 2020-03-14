@@ -6,9 +6,15 @@ import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.DiscordClientBuilder
 import discord4j.core.event.domain.message.MessageCreateEvent
 import reactor.core.publisher.Mono
+import kotlin.system.exitProcess
 
-fun main() {
-    val client = DiscordClientBuilder("NTg1NTQxMjk4ODc0ODc1OTEy.XPcTuA.iXVsSg92vDUaI-4JtOn_xEx344Q").build()
+fun main(args: Array<String>) {
+    if (args.isEmpty()) {
+        System.err.println("Please supply a Discord bot token in args.")
+        exitProcess(1)
+    }
+    val token = args[0]
+    val client = DiscordClientBuilder(token).build()
 
     val commandRepository = CommandRegistry
         .register(MonitoringCommandSet)
