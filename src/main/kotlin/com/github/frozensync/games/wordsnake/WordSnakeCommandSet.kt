@@ -10,6 +10,8 @@ object WordSnakeCommandSet : CommandSet {
     private lateinit var game: WordSnake
     private lateinit var gameStatus: WordSnakeStatus
 
+    private val eventRepository: EventRepository = FileRepository
+
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["newgame"] = { event ->
             event.message.channel
@@ -24,7 +26,7 @@ object WordSnakeCommandSet : CommandSet {
                             gameStatus = WordSnakeStatus()
                         }
                         .map { command -> game.handle(command) }
-                        // .doOnNext { save event }
+                        .doOnNext { event -> eventRepository.save(event) }
                         .doOnNext { event -> gameStatus.on(event) }
                         .map { "Created a new game with the following players: ${gameStatus.playerNames.joinToString()}" }
                         .flatMap { message -> channel.createMessage(message) }
@@ -41,7 +43,7 @@ object WordSnakeCommandSet : CommandSet {
                             val command = AppendWordCommand(word)
                             game.handle(command)
                         }
-                        // .doOnNext { save event }
+                        .doOnNext { event -> eventRepository.save(event) }
                         .doOnNext { event -> gameStatus.on(event) }
                         .map {
                             """Word: ${gameStatus.lastWord}
@@ -59,7 +61,7 @@ object WordSnakeCommandSet : CommandSet {
                 .flatMap { channel ->
                     Mono.just(UndoTurnCommand())
                         .map { command -> game.handle(command) }
-                        // .doOnNext { save event }
+                        .doOnNext { event -> eventRepository.save(event) }
                         .doOnNext { event -> gameStatus.on(event) }
                         .map { event ->
                             """Undone ${event.removedWord}
