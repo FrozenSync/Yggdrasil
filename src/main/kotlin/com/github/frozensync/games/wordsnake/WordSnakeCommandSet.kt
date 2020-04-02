@@ -34,7 +34,11 @@ object WordSnakeCommandSet : CommandSet {
                                     Mono.just(gameCreatedEvent)
                                 }
                                 .flatMap { wordSnakeStatusRepository.findByChannel(0L) }
-                                .map { status -> "Created a new game with the following players: ${status.playerNames.joinToString()}" }
+                                .map { status ->
+                                    """Created a new game with the following players: ${status.playerNames.joinToString()}
+                                        |Turn ${status.turn}: ${status.currentPlayer.name}
+                                    """.trimMargin()
+                                }
                         )
                         .flatMap { message -> channel.createMessage(message) }
                 }
