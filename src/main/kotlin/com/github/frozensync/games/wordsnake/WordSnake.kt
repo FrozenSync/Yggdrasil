@@ -4,16 +4,14 @@ import java.util.*
 
 internal class WordSnake {
 
-    private val playerQueue: Deque<Player> = ArrayDeque()
-
     private val words: MutableSet<String> = LinkedHashSet(256)
     private var _lastWord: String? = null
 
     fun handle(command: CreateGameCommand): GameCreatedEvent {
         val players = command.playerNames.map { Player(it) }
-        players.forEach { playerQueue.offer(it) }
+        if (players.isEmpty()) throw IllegalArgumentException("Cannot create a game with no players")
 
-        return GameCreatedEvent(players, playerQueue.peek())
+        return GameCreatedEvent(players)
     }
 
     fun handle(command: AppendWordCommand): WordAppendedEvent {
@@ -26,31 +24,32 @@ internal class WordSnake {
             words.contains(word) -> throw InvalidWordException("Word \"$word\" has already been used.")
         }
 
-        appendWord(word)
-        nextTurn()
-
-        return WordAppendedEvent(word, playerQueue.peek())
+        return WordAppendedEvent(word)
     }
 
     private fun String.startsWithLastLetterOf(s: String) = first() == s.last()
+
+    fun handle(@Suppress("UNUSED_PARAMETER") command: UndoTurnCommand): WordUndoneEvent {
+        val lastWord = _lastWord ?: throw NoSuchWordException("There are no words to undo")
+        val currentWord = words.last { it != lastWord }
+        return WordUndoneEvent(lastWord, currentWord)
+    }
+
+    fun apply(@Suppress("UNUSED_PARAMETER") event: GameCreatedEvent) {
+        // do nothing
+    }
+
+    fun apply(event: WordAppendedEvent) {
+        appendWord(event.word)
+    }
 
     private fun appendWord(word: String) {
         words += word
         _lastWord = word
     }
 
-    private fun nextTurn() {
-        val player = playerQueue.remove()
-        playerQueue.offer(player)
-    }
-
-    fun handle(@Suppress("UNUSED_PARAMETER") command: UndoTurnCommand): TurnUndoneEvent {
-        if (words.isEmpty()) throw NoSuchWordException("There are no words to undo")
-
-        val (removedWord, lastWord) = undoWord()
-        val nextPlayer = undoTurn()
-
-        return TurnUndoneEvent(removedWord, lastWord, nextPlayer)
+    fun apply(@Suppress("UNUSED_PARAMETER") event: WordUndoneEvent) {
+        undoWord()
     }
 
     private fun undoWord(): Pair<String, String?> {
@@ -61,26 +60,5 @@ internal class WordSnake {
         _lastWord = lastWord
 
         return Pair(wordToRemove, lastWord)
-    }
-
-    private fun undoTurn(): Player {
-        val player = playerQueue.removeLast()
-        playerQueue.offerFirst(player)
-
-        return playerQueue.peek()
-    }
-
-    fun apply(event: GameCreatedEvent) {
-        event.players.forEach { playerQueue.offer(it) }
-    }
-
-    fun apply(event: WordAppendedEvent) {
-        appendWord(event.word)
-        nextTurn()
-    }
-
-    fun apply(@Suppress("UNUSED_PARAMETER") event: TurnUndoneEvent) {
-        undoWord()
-        undoTurn()
     }
 }

@@ -3,12 +3,12 @@ package com.github.frozensync.games.wordsnake
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
-import reactor.core.publisher.Mono
 import java.nio.file.Files
 import java.nio.file.Paths
 
 internal interface EventRepository {
-    fun save(event: Event): Mono<Void>
+    fun findAll(): List<Event>
+    fun save(event: Event)
 }
 
 @Serializable
@@ -30,12 +30,12 @@ internal object FileRepository : EventRepository {
         }
     }
 
-    override fun save(event: Event): Mono<Void> {
+    override fun findAll(): List<Event> = data.events
+
+    override fun save(event: Event) {
         data.events += event
 
         val result = json.stringify(Data.serializer(), data)
         Files.writeString(path, result)
-
-        return Mono.empty()
     }
 }

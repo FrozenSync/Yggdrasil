@@ -6,10 +6,10 @@ import kotlinx.serialization.Serializable
 internal sealed class Event
 
 @Serializable
-internal data class GameCreatedEvent(val players: List<Player>, val nextPlayer: Player) : Event()
+internal data class GameCreatedEvent(val players: List<Player>) : Event()
 
 @Serializable
-internal data class WordAppendedEvent(val word: String, val nextPlayer: Player) : Event()
+internal data class WordAppendedEvent(val word: String) : Event() // TODO add player
 
 @Serializable
-internal data class TurnUndoneEvent(val removedWord: String, val lastWord: String?, val nextPlayer: Player) : Event()
+internal data class WordUndoneEvent(val removedWord: String, val currentWord: String) : Event()
