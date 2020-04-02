@@ -1,15 +1,18 @@
 package com.github.frozensync
 
 import com.github.frozensync.command.CommandRegistry
-import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
 import com.github.frozensync.monitoring.MonitoringCommandSet
-import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.DiscordClientBuilder
 import discord4j.core.event.domain.message.MessageCreateEvent
-import reactor.core.publisher.Mono
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.runBlocking
 import kotlin.system.exitProcess
 
-fun main(args: Array<String>) {
+fun main(args: Array<String>) = runBlocking<Unit> {
     if (args.isEmpty()) {
         System.err.println("Please supply a Discord bot token in args.")
         exitProcess(1)
@@ -19,21 +22,20 @@ fun main(args: Array<String>) {
 
     val commandRepository = CommandRegistry
         .register(MonitoringCommandSet)
-        .register(FunCommandSet)
-        .register(WordSnakeCommandSet)
 
-    client.eventDispatcher.on(MessageCreateEvent::class.java)
+    client.eventDispatcher.on(MessageCreateEvent::class.java).asFlow()
         .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }
-        .flatMap { event ->
-            Mono.justOrEmpty(event.message.content)
-                .map { content -> content.substringBefore(' ').removePrefix("!") }
-                .flatMap { commandName ->
-                    val command = commandRepository.findByName(commandName)
-                    if (command == null) Mono.empty() else Mono.just(command)
-                }
-                .flatMap { command -> command.invoke(event) }
-        }
-        .subscribe()
+        .onEach { event ->
+            val command = event.message.content
+                .map { it.parseCommandName() }
+                .map { commandRepository.findByName(it) }
+                .orElse(null)
 
-    client.login().block()
+            command?.invoke(event)
+        }
+        .launchIn(this)
+
+    client.login().awaitFirstOrNull()
 }
+
+private fun String.parseCommandName() = this.substringBefore(' ').removePrefix("!")
