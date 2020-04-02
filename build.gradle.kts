@@ -11,6 +11,7 @@ group = "com.github.frozensync"
 version = "1.0-SNAPSHOT"
 
 val kotlinVersion by extra("1.3.70")
+val kotlinCouroutinesVersion by extra("1.3.5")
 val kotlinSerializationVersion by extra("0.20.0")
 
 val discord4jVersion by extra("3.0.13")
@@ -25,6 +26,8 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCouroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCouroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kotlinSerializationVersion")
 
     implementation("com.discord4j:discord4j-core:$discord4jVersion")
