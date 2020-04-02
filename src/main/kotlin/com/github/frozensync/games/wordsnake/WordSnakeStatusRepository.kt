@@ -5,7 +5,6 @@ import reactor.core.publisher.Mono
 
 internal interface WordSnakeStatusRepository {
     fun findByChannel(channelId: Long): Mono<WordSnakeStatus>
-    fun save(status: WordSnakeStatus)
 
     fun on(event: GameCreatedEvent)
     fun on(event: WordAppendedEvent)
@@ -23,19 +22,15 @@ internal object InMemoryWordSnakeStatusRepository : WordSnakeStatusRepository {
         if (result == null) Mono.empty() else Mono.just(result)
     }
 
-    override fun save(status: WordSnakeStatus) {
-        map[0L] = status
-    }
-
     override fun on(event: GameCreatedEvent) {
-        map[0L] = WordSnakeStatus(event.players, event.players.first())
+        map[event.channelId] = WordSnakeStatus(event.players, event.players.first())
     }
 
     override fun on(event: WordAppendedEvent) {
-        val status = map[0L] ?: return
+        val status = map[event.channelId] ?: return
         val nextPlayer = status.nextPlayer()
 
-        map[0L] = status.copy(
+        map[event.channelId] = status.copy(
             currentPlayer = nextPlayer,
             lastWord = event.word,
             numberOfCharacters = status.numberOfCharacters + event.word.length,
@@ -44,10 +39,10 @@ internal object InMemoryWordSnakeStatusRepository : WordSnakeStatusRepository {
     }
 
     override fun on(event: WordUndoneEvent) {
-        val status = map[0L] ?: return
+        val status = map[event.channelId] ?: return
         val nextPlayer = status.nextPlayer()
 
-        map[0L] = status.copy(
+        map[event.channelId] = status.copy(
             currentPlayer = nextPlayer,
             lastWord = event.currentWord,
             numberOfCharacters = status.numberOfCharacters - event.removedWord.length,
