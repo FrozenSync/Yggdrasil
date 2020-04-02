@@ -33,8 +33,17 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
 
     testImplementation(group = "org.jetbrains.kotlin", name = "kotlin-test", version = kotlinVersion)
+    testImplementation("org.spekframework.spek2:spek-dsl-jvm:$spekVersion")
+    testRuntimeOnly("org.spekframework.spek2:spek-runner-junit5:$spekVersion")
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform {
+        includeEngines("spek2")
+    }
 }
