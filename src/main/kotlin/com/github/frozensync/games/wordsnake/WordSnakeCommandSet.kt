@@ -20,20 +20,22 @@ object WordSnakeCommandSet : CommandSet {
         this["newgame"] = { event ->
             event.message.channel
                 .flatMap { channel ->
-                    wordSnakeRepository.findByChannel(0L)
+                    val channelId = channel.id.asLong()
+
+                    wordSnakeRepository.findByChannel(channelId)
                         .map { GAME_STILL_ONGOING_MESSAGE }
                         .switchIfEmpty(
                             Mono.justOrEmpty(event.message.content)
                                 .map { content ->
                                     val playerNames = CommandArgs(content).asWords()
-                                    CreateGameCommand(playerNames)
+                                    CreateGameCommand(channelId, playerNames)
                                 }
                                 .flatMap { command ->
-                                    val gameCreatedEvent = WordSnake().handle(command)
+                                    val gameCreatedEvent = WordSnake.handle(command)
                                     eventService.save(gameCreatedEvent)
                                     Mono.just(gameCreatedEvent)
                                 }
-                                .flatMap { wordSnakeStatusRepository.findByChannel(0L) }
+                                .flatMap { wordSnakeStatusRepository.findByChannel(channelId) }
                                 .map { status ->
                                     """Created a new game with the following players: ${status.playerNames.joinToString()}
                                         |Turn ${status.turn}: ${status.currentPlayer.name}
@@ -48,16 +50,18 @@ object WordSnakeCommandSet : CommandSet {
         this["n"] = { event ->
             event.message.channel
                 .flatMap { channel ->
+                    val channelId = channel.id.asLong()
+
                     Mono.justOrEmpty(event.message.content)
                         .map { content ->
                             val word = CommandArgs(content).nextWord()
-                            AppendWordCommand(word)
+                            AppendWordCommand(channelId, word)
                         }
                         .flatMap { command ->
-                            wordSnakeRepository.findByChannel(0L)
+                            wordSnakeRepository.findByChannel(channelId)
                                 .map { game -> game.handle(command) }
                                 .doOnNext { event -> eventService.save(event) }
-                                .flatMap { wordSnakeStatusRepository.findByChannel(0L) }
+                                .flatMap { wordSnakeStatusRepository.findByChannel(channelId) }
                                 .map { status ->
                                     """Word: ${status.lastWord}
                                         |Turn ${status.turn}: ${status.currentPlayer.name}
@@ -74,13 +78,15 @@ object WordSnakeCommandSet : CommandSet {
         this["undo"] = { event ->
             event.message.channel
                 .flatMap { channel ->
-                    Mono.just(UndoTurnCommand())
+                    val channelId = channel.id.asLong()
+
+                    Mono.just(UndoTurnCommand(channelId))
                         .flatMap { command ->
-                            wordSnakeRepository.findByChannel(0L)
+                            wordSnakeRepository.findByChannel(channelId)
                                 .map { game -> game.handle(command) }
                                 .doOnNext { event -> eventService.save(event) }
                                 .flatMap { event ->
-                                    wordSnakeStatusRepository.findByChannel(0L)
+                                    wordSnakeStatusRepository.findByChannel(channelId)
                                         .map { status ->
                                             """Undone ${event.removedWord}
                                                 |Word: ${status.lastWord ?: ""}
@@ -99,7 +105,7 @@ object WordSnakeCommandSet : CommandSet {
         this["currentturn"] = { event ->
             event.message.channel
                 .flatMap { channel ->
-                    wordSnakeStatusRepository.findByChannel(0L)
+                    wordSnakeStatusRepository.findByChannel(channel.id.asLong())
                         .map { status ->
                             """Word: ${status.lastWord}
                                 |Turn ${status.turn}: ${status.currentPlayer.name}
@@ -112,7 +118,7 @@ object WordSnakeCommandSet : CommandSet {
         this["snakestats"] = { event ->
             event.message.channel
                 .flatMap { channel ->
-                    wordSnakeStatusRepository.findByChannel(0L)
+                    wordSnakeStatusRepository.findByChannel(channel.id.asLong())
                         .map { status ->
                             """Size: ${status.numberOfCharacters}
                                 |Number of words: ${status.turn - 1}

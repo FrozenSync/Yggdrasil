@@ -20,14 +20,14 @@ internal object InMemoryWordSnakeRepository : WordSnakeRepository {
     }
 
     override fun on(event: GameCreatedEvent) {
-        map[0L] = WordSnake().also { it.apply(event) }
+        map[event.channelId] = WordSnake(event)
     }
 
     override fun on(event: WordAppendedEvent) {
-        map[0L]?.apply(event)
+        map[event.channelId]?.apply(event)
     }
 
     override fun on(event: WordUndoneEvent) {
-        map[0L]?.apply(event)
+        map[event.channelId]?.apply(event)
     }
 }

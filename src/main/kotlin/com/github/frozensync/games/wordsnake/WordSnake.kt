@@ -2,19 +2,25 @@ package com.github.frozensync.games.wordsnake
 
 import java.util.*
 
-internal class WordSnake {
+internal class WordSnake(event: GameCreatedEvent) {
+
+    private val channelId: Long = event.channelId
 
     private val words: MutableSet<String> = LinkedHashSet(256)
     private var _lastWord: String? = null
 
-    fun handle(command: CreateGameCommand): GameCreatedEvent {
-        val players = command.playerNames.map { Player(it) }
-        if (players.isEmpty()) throw IllegalArgumentException("Cannot create a game with no players")
+    companion object {
+        fun handle(command: CreateGameCommand): GameCreatedEvent {
+            val players = command.playerNames.map { Player(it) }
+            if (players.isEmpty()) throw IllegalArgumentException("Cannot create a game with no players")
 
-        return GameCreatedEvent(players)
+            return GameCreatedEvent(command.channelId, players)
+        }
     }
 
     fun handle(command: AppendWordCommand): WordAppendedEvent {
+        if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
+
         val word = command.word
         val lastWord = _lastWord
 
@@ -24,19 +30,18 @@ internal class WordSnake {
             words.contains(word) -> throw InvalidWordException("Word \"$word\" has already been used.")
         }
 
-        return WordAppendedEvent(word)
+        return WordAppendedEvent(command.channelId, word)
     }
 
     private fun String.startsWithLastLetterOf(s: String) = first() == s.last()
 
-    fun handle(@Suppress("UNUSED_PARAMETER") command: UndoTurnCommand): WordUndoneEvent {
+    fun handle(command: UndoTurnCommand): WordUndoneEvent {
+        if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
+
         val lastWord = _lastWord ?: throw NoSuchWordException("There are no words to undo")
         val currentWord = words.last { it != lastWord }
-        return WordUndoneEvent(lastWord, currentWord)
-    }
 
-    fun apply(@Suppress("UNUSED_PARAMETER") event: GameCreatedEvent) {
-        // do nothing
+        return WordUndoneEvent(command.channelId, lastWord, currentWord)
     }
 
     fun apply(event: WordAppendedEvent) {
