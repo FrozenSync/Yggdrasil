@@ -8,6 +8,6 @@ class CommandArgs(commandMessage: String) {
     private val scanner by lazy { Scanner(args) }
 
     fun asString() = args
-    fun asWords() = args.split(" ")
     fun nextWord() = scanner.next()
+    fun split(delimiter: String = " ") = args.split(delimiter)
 }

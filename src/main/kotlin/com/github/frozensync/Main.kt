@@ -2,6 +2,7 @@ package com.github.frozensync
 
 import com.github.frozensync.command.CommandRegistry
 import com.github.frozensync.monitoring.MonitoringCommandSet
+import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.DiscordClientBuilder
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.flow.filter
@@ -22,6 +23,7 @@ fun main(args: Array<String>) = runBlocking<Unit> {
 
     val commandRepository = CommandRegistry
         .register(MonitoringCommandSet)
+        .register(FunCommandSet)
 
     client.eventDispatcher.on(MessageCreateEvent::class.java).asFlow()
         .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }
