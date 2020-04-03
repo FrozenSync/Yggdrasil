@@ -1,10 +1,9 @@
 package com.github.frozensync.games.wordsnake
 
 import mu.KotlinLogging
-import reactor.core.publisher.Mono
 
 internal interface WordSnakeStatusRepository {
-    fun findByChannel(channelId: Long): Mono<WordSnakeStatus>
+    suspend fun findByChannel(channelId: Long): WordSnakeStatus?
 
     fun on(event: GameCreatedEvent)
     fun on(event: WordAppendedEvent)
@@ -17,10 +16,7 @@ internal object InMemoryWordSnakeStatusRepository : WordSnakeStatusRepository {
 
     private val map = mutableMapOf<Long, WordSnakeStatus>()
 
-    override fun findByChannel(channelId: Long): Mono<WordSnakeStatus> = Mono.defer {
-        val result = map[channelId]
-        if (result == null) Mono.empty() else Mono.just(result)
-    }
+    override suspend fun findByChannel(channelId: Long): WordSnakeStatus? = map[channelId]
 
     override fun on(event: GameCreatedEvent) {
         map[event.channelId] = WordSnakeStatus(event.players, event.players.first())

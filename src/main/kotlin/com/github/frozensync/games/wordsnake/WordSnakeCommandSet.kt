@@ -3,7 +3,7 @@ package com.github.frozensync.games.wordsnake
 import com.github.frozensync.command.Command
 import com.github.frozensync.command.CommandArgs
 import com.github.frozensync.command.CommandSet
-import reactor.core.publisher.Mono
+import kotlinx.coroutines.reactive.awaitFirst
 
 object WordSnakeCommandSet : CommandSet {
 
@@ -17,115 +17,106 @@ object WordSnakeCommandSet : CommandSet {
     private val wordSnakeStatusRepository: WordSnakeStatusRepository = InMemoryWordSnakeStatusRepository
 
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
-        this["newgame"] = { event ->
-            event.message.channel
-                .flatMap { channel ->
-                    val channelId = channel.id.asLong()
+        this["newgame"] = h@{ event ->
+            val channel = event.message.channel.awaitFirst()
+            val channelId = channel.id.asLong()
 
-                    wordSnakeRepository.findByChannel(channelId)
-                        .map { GAME_STILL_ONGOING_MESSAGE }
-                        .switchIfEmpty(
-                            Mono.justOrEmpty(event.message.content)
-                                .map { content ->
-                                    val playerNames = CommandArgs(content).asWords()
-                                    CreateGameCommand(channelId, playerNames)
-                                }
-                                .flatMap { command ->
-                                    val gameCreatedEvent = WordSnake.handle(command)
-                                    eventService.save(gameCreatedEvent)
-                                    Mono.just(gameCreatedEvent)
-                                }
-                                .flatMap { wordSnakeStatusRepository.findByChannel(channelId) }
-                                .map { status ->
-                                    """Created a new game with the following players: ${status.playerNames.joinToString()}
-                                        |Turn ${status.turn}: ${status.currentPlayer.name}
-                                    """.trimMargin()
-                                }
-                        )
-                        .flatMap { message -> channel.createMessage(message) }
-                }
-                .then()
+            val conflict = wordSnakeRepository.findByChannel(channelId) != null
+            if (conflict) {
+                channel.createMessage(GAME_STILL_ONGOING_MESSAGE)
+                return@h
+            }
+
+            val createGameCommand = event.message.content
+                .map { CreateGameCommand(channelId, playerNames = CommandArgs(it).split()) }
+                .orElse(null) ?: return@h
+            val gameCreatedEvent = WordSnake.handle(createGameCommand)
+            eventService.save(gameCreatedEvent)
+
+            val message =
+                """Created a new game with the following players: ${gameCreatedEvent.players.joinToString { it.name }}
+                    |Turn 1: ${gameCreatedEvent.players[1].name}
+                """.trimMargin()
+            channel.createMessage(message).awaitFirst()
         }
 
-        this["n"] = { event ->
-            event.message.channel
-                .flatMap { channel ->
-                    val channelId = channel.id.asLong()
+        this["n"] = h@{ event ->
+            val channel = event.message.channel.awaitFirst()
+            val channelId = channel.id.asLong()
 
-                    Mono.justOrEmpty(event.message.content)
-                        .map { content ->
-                            val word = CommandArgs(content).nextWord()
-                            AppendWordCommand(channelId, word)
-                        }
-                        .flatMap { command ->
-                            wordSnakeRepository.findByChannel(channelId)
-                                .map { game -> game.handle(command) }
-                                .doOnNext { event -> eventService.save(event) }
-                                .flatMap { wordSnakeStatusRepository.findByChannel(channelId) }
-                                .map { status ->
-                                    """Word: ${status.lastWord}
-                                        |Turn ${status.turn}: ${status.currentPlayer.name}
-                                    """.trimMargin()
-                                }
-                                .switchIfEmpty(Mono.just(NO_ONGOING_GAME_MESSAGE))
-                        }
-                        .onErrorResume(InvalidWordException::class.java) { Mono.justOrEmpty(it.message) }
-                        .flatMap { message -> channel.createMessage(message) }
-                }
-                .then()
+            val game = wordSnakeRepository.findByChannel(channelId)
+            if (game == null) {
+                channel.createMessage(NO_ONGOING_GAME_MESSAGE)
+                return@h
+            }
+
+            val appendWordCommand = event.message.content
+                .map { AppendWordCommand(channelId, word = CommandArgs(it).nextWord()) }
+                .orElse(null) ?: return@h
+
+            val message = try {
+                val wordAppendedEvent = game.handle(appendWordCommand)
+                eventService.save(wordAppendedEvent)
+
+                val status = wordSnakeStatusRepository.findByChannel(channelId)
+                """Word: ${wordAppendedEvent.word}
+                    |Turn ${status?.turn}: ${status?.currentPlayer?.name}
+                """.trimMargin()
+            } catch (e: InvalidWordException) {
+                e.message!!
+            }
+            channel.createMessage(message).awaitFirst()
         }
 
-        this["undo"] = { event ->
-            event.message.channel
-                .flatMap { channel ->
-                    val channelId = channel.id.asLong()
+        this["undo"] = h@{ event ->
+            val channel = event.message.channel.awaitFirst()
+            val channelId = channel.id.asLong()
 
-                    Mono.just(UndoTurnCommand(channelId))
-                        .flatMap { command ->
-                            wordSnakeRepository.findByChannel(channelId)
-                                .map { game -> game.handle(command) }
-                                .doOnNext { event -> eventService.save(event) }
-                                .flatMap { event ->
-                                    wordSnakeStatusRepository.findByChannel(channelId)
-                                        .map { status ->
-                                            """Undone ${event.removedWord}
-                                                |Word: ${status.lastWord ?: ""}
-                                                |Turn ${status.turn}: ${status.currentPlayer.name}
-                                            """.trimMargin()
-                                        }
-                                }
-                                .switchIfEmpty(Mono.just(NO_ONGOING_GAME_MESSAGE))
-                        }
-                        .onErrorResume(NoSuchWordException::class.java) { Mono.justOrEmpty(it.message) }
-                        .flatMap { message -> channel.createMessage(message) }
-                }
-                .then()
+            val game = wordSnakeRepository.findByChannel(channelId)
+            if (game == null) {
+                channel.createMessage(NO_ONGOING_GAME_MESSAGE)
+                return@h
+            }
+
+            val undoWordCommand = UndoWordCommand(channelId)
+            val wordUndoneEvent = game.handle(undoWordCommand) ?: return@h
+            eventService.save(wordUndoneEvent)
+
+            val status = wordSnakeStatusRepository.findByChannel(channelId)
+            val message =
+                """Undone ${wordUndoneEvent.removedWord}
+                    |Word: ${wordUndoneEvent.currentWord ?: ""}
+                    |Turn ${status?.turn}: ${status?.currentPlayer?.name}
+                """.trimMargin()
+            channel.createMessage(message).awaitFirst()
         }
 
         this["currentturn"] = { event ->
-            event.message.channel
-                .flatMap { channel ->
-                    wordSnakeStatusRepository.findByChannel(channel.id.asLong())
-                        .map { status ->
-                            """Word: ${status.lastWord}
-                                |Turn ${status.turn}: ${status.currentPlayer.name}
-                            """.trimMargin()
-                        }.flatMap { message -> channel.createMessage(message) }
+            val channel = event.message.channel.awaitFirst()
+            val channelId = channel.id.asLong()
+
+            val message = wordSnakeStatusRepository.findByChannel(channelId)
+                ?.let { status ->
+                    """Word: ${status.lastWord}
+                        |Turn ${status.turn}: ${status.currentPlayer.name}
+                    """.trimMargin()
                 }
-                .then()
+                ?: NO_ONGOING_GAME_MESSAGE
+            channel.createMessage(message).awaitFirst()
         }
 
         this["snakestats"] = { event ->
-            event.message.channel
-                .flatMap { channel ->
-                    wordSnakeStatusRepository.findByChannel(channel.id.asLong())
-                        .map { status ->
-                            """Size: ${status.numberOfCharacters}
-                                |Number of words: ${status.turn - 1}
-                            """.trimMargin()
-                        }.flatMap { message -> channel.createMessage(message) }
+            val channel = event.message.channel.awaitFirst()
+            val channelId = channel.id.asLong()
+
+            val message = wordSnakeStatusRepository.findByChannel(channelId)
+                ?.let { status ->
+                    """Size: ${status.numberOfCharacters}
+                        |Number of words: ${status.turn - 1}
+                    """.trimMargin()
                 }
-                .then()
+                ?: NO_ONGOING_GAME_MESSAGE
+            channel.createMessage(message).awaitFirst()
         }
     }
 }

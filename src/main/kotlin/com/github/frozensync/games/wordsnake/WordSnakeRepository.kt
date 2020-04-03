@@ -1,9 +1,7 @@
 package com.github.frozensync.games.wordsnake
 
-import reactor.core.publisher.Mono
-
 internal interface WordSnakeRepository {
-    fun findByChannel(channelId: Long): Mono<WordSnake>
+    suspend fun findByChannel(channelId: Long): WordSnake?
 
     fun on(event: GameCreatedEvent)
     fun on(event: WordAppendedEvent)
@@ -14,10 +12,7 @@ internal object InMemoryWordSnakeRepository : WordSnakeRepository {
 
     private val map = mutableMapOf<Long, WordSnake>()
 
-    override fun findByChannel(channelId: Long): Mono<WordSnake> = Mono.defer {
-        val result = map[channelId]
-        if (result == null) Mono.empty() else Mono.just(result)
-    }
+    override suspend fun findByChannel(channelId: Long): WordSnake? = map[channelId]
 
     override fun on(event: GameCreatedEvent) {
         map[event.channelId] = WordSnake(event)
