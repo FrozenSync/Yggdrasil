@@ -35,10 +35,10 @@ internal class WordSnake(event: GameCreatedEvent) {
 
     private fun String.startsWithLastLetterOf(s: String) = first() == s.last()
 
-    fun handle(command: UndoTurnCommand): WordUndoneEvent {
+    fun handle(command: UndoWordCommand): WordUndoneEvent? {
         if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
 
-        val lastWord = _lastWord ?: throw NoSuchWordException("There are no words to undo")
+        val lastWord = _lastWord ?: return null
         val currentWord = words.last { it != lastWord }
 
         return WordUndoneEvent(command.channelId, lastWord, currentWord)
