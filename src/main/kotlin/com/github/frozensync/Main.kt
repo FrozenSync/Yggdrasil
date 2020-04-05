@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
+import mu.KotlinLogging
 import kotlin.system.exitProcess
+
+val logger = KotlinLogging.logger { }
 
 fun main(args: Array<String>) = runBlocking<Unit> {
     if (args.isEmpty()) {
@@ -30,6 +33,8 @@ fun main(args: Array<String>) = runBlocking<Unit> {
     client.eventDispatcher.on(MessageCreateEvent::class.java).asFlow()
         .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }
         .onEach { event ->
+            logger.trace { event.message.content.orElse("") }
+
             val command = event.message.content
                 .map { it.parseCommandName() }
                 .map { commandRepository.findByName(it) }

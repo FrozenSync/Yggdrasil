@@ -3,6 +3,7 @@ package com.github.frozensync.games.wordsnake
 import com.github.frozensync.command.Command
 import com.github.frozensync.command.CommandArgs
 import com.github.frozensync.command.CommandSet
+import com.github.frozensync.discord.UserId
 import kotlinx.coroutines.reactive.awaitFirst
 
 object WordSnakeCommandSet : CommandSet {
@@ -27,15 +28,21 @@ object WordSnakeCommandSet : CommandSet {
                 return@h
             }
 
-            val createGameCommand = event.message.content
-                .map { CreateGameCommand(channelId, playerNames = CommandArgs(it).split()) }
-                .orElse(null) ?: return@h
+            val createGameCommand = event.message.userMentionIds
+                .map { Player(it.asLong()) }
+                .let { CreateGameCommand(channelId, players = it) }
+
             val gameCreatedEvent = WordSnake.handle(createGameCommand)
+            if (gameCreatedEvent == null) { // TODO replace with Either<>
+                channel.createMessage("Cannot create a game with less than two players.").awaitFirst()
+                return@h
+            }
             eventService.save(gameCreatedEvent)
 
+            val playerMentions = gameCreatedEvent.players.map { UserId(it.id).toString() }
             val message =
-                """Created a new game with the following players: ${gameCreatedEvent.players.joinToString { it.name }}
-                    |Turn 1: ${gameCreatedEvent.players[1].name}
+                """Created a new game with the following players: $playerMentions
+                    |Turn 1: ${UserId(gameCreatedEvent.nextPlayer.id)}
                 """.trimMargin()
             channel.createMessage(message).awaitFirst()
         }
@@ -54,13 +61,13 @@ object WordSnakeCommandSet : CommandSet {
                 .map { AppendWordCommand(channelId, word = CommandArgs(it).nextWord()) }
                 .orElse(null) ?: return@h
 
-            val message = try {
+            val message = try { // TODO replace with Either<>
                 val wordAppendedEvent = game.handle(appendWordCommand)
                 eventService.save(wordAppendedEvent)
 
                 val status = wordSnakeStatusRepository.findByChannel(channelId)
                 """Word: ${wordAppendedEvent.word}
-                    |Turn ${status?.turn}: ${status?.currentPlayer?.name}
+                    |Turn ${status?.turn}: ${UserId(wordAppendedEvent.nextPlayer.id)}
                 """.trimMargin()
             } catch (e: InvalidWordException) {
                 e.message!!
@@ -86,7 +93,7 @@ object WordSnakeCommandSet : CommandSet {
             val message =
                 """Undone ${wordUndoneEvent.removedWord}
                     |Word: ${wordUndoneEvent.currentWord ?: ""}
-                    |Turn ${status?.turn}: ${status?.currentPlayer?.name}
+                    |Turn ${status?.turn}: ${UserId(wordUndoneEvent.nextPlayer.id)}
                 """.trimMargin()
             channel.createMessage(message).awaitFirst()
         }
@@ -98,7 +105,7 @@ object WordSnakeCommandSet : CommandSet {
             val message = wordSnakeStatusRepository.findByChannel(channelId)
                 ?.let { status ->
                     """Word: ${status.lastWord}
-                        |Turn ${status.turn}: ${status.currentPlayer.name}
+                        |Turn ${status.turn}: ${UserId(status.currentPlayer.id)}
                     """.trimMargin()
                 }
                 ?: NO_ONGOING_GAME_MESSAGE

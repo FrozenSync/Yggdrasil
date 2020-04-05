@@ -13,11 +13,10 @@ internal class WordSnake(event: GameCreatedEvent) {
     private var currentPlayer = event.nextPlayer
 
     companion object {
-        fun handle(command: CreateGameCommand): GameCreatedEvent {
-            val players = command.playerNames.map { Player(it) }
-            if (players.size < 2) throw IllegalArgumentException("Cannot start a game with less than 2 players")
+        fun handle(command: CreateGameCommand): GameCreatedEvent? {
+            if (command.players.size < 2) return null
 
-            return GameCreatedEvent(command.channelId, players, players[0])
+            return GameCreatedEvent(command.channelId, command.players, command.players[0])
         }
     }
 
