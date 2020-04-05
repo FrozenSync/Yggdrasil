@@ -24,10 +24,9 @@ internal object InMemoryWordSnakeStatusRepository : WordSnakeStatusRepository {
 
     override fun on(event: WordAppendedEvent) {
         val status = map[event.channelId] ?: return
-        val nextPlayer = status.nextPlayer()
 
         map[event.channelId] = status.copy(
-            currentPlayer = nextPlayer,
+            currentPlayer = event.nextPlayer,
             lastWord = event.word,
             numberOfCharacters = status.numberOfCharacters + event.word.length,
             turn = status.turn + 1
@@ -36,10 +35,9 @@ internal object InMemoryWordSnakeStatusRepository : WordSnakeStatusRepository {
 
     override fun on(event: WordUndoneEvent) {
         val status = map[event.channelId] ?: return
-        val nextPlayer = status.nextPlayer()
 
         map[event.channelId] = status.copy(
-            currentPlayer = nextPlayer,
+            currentPlayer = event.nextPlayer,
             lastWord = event.currentWord,
             numberOfCharacters = status.numberOfCharacters - event.removedWord.length,
             turn = status.turn - 1

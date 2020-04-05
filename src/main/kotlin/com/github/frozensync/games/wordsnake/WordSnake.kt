@@ -9,12 +9,15 @@ internal class WordSnake(event: GameCreatedEvent) {
     private val words: MutableSet<String> = LinkedHashSet(256)
     private var _lastWord: String? = null
 
+    private val players: List<Player> = event.players
+    private var currentPlayer = event.nextPlayer
+
     companion object {
         fun handle(command: CreateGameCommand): GameCreatedEvent {
             val players = command.playerNames.map { Player(it) }
-            if (players.isEmpty()) throw IllegalArgumentException("Cannot create a game with no players")
+            if (players.size < 2) throw IllegalArgumentException("Cannot start a game with less than 2 players")
 
-            return GameCreatedEvent(command.channelId, players)
+            return GameCreatedEvent(command.channelId, players, players[0])
         }
     }
 
@@ -30,10 +33,16 @@ internal class WordSnake(event: GameCreatedEvent) {
             words.contains(word) -> throw InvalidWordException("Word \"$word\" has already been used.")
         }
 
-        return WordAppendedEvent(command.channelId, word)
+        return WordAppendedEvent(command.channelId, word, players.nextPlayer(currentPlayer))
     }
 
     private fun String.startsWithLastLetterOf(s: String) = first() == s.last()
+
+    private fun List<Player>.nextPlayer(currentPlayer: Player): Player {
+        val currentIndex = indexOf(currentPlayer)
+        val nextIndex = if (currentIndex == size - 1) 0 else currentIndex + 1
+        return this[nextIndex]
+    }
 
     fun handle(command: UndoWordCommand): WordUndoneEvent? {
         if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
@@ -41,29 +50,26 @@ internal class WordSnake(event: GameCreatedEvent) {
         val lastWord = _lastWord ?: return null
         val currentWord = words.last { it != lastWord }
 
-        return WordUndoneEvent(command.channelId, lastWord, currentWord)
+        return WordUndoneEvent(command.channelId, lastWord, currentWord, players.previousPlayer(currentPlayer))
+    }
+
+    private fun List<Player>.previousPlayer(currentPlayer: Player): Player {
+        val currentIndex = indexOf(currentPlayer)
+        val nextIndex = if (currentIndex == 0) size - 1 else currentIndex - 1
+        return this[nextIndex]
     }
 
     fun apply(event: WordAppendedEvent) {
-        appendWord(event.word)
+        words += event.word
+        _lastWord = event.word
+
+        currentPlayer = event.nextPlayer
     }
 
-    private fun appendWord(word: String) {
-        words += word
-        _lastWord = word
-    }
+    fun apply(event: WordUndoneEvent) {
+        words -= event.removedWord
+        _lastWord = event.currentWord
 
-    fun apply(@Suppress("UNUSED_PARAMETER") event: WordUndoneEvent) {
-        undoWord()
-    }
-
-    private fun undoWord(): Pair<String, String?> {
-        val wordToRemove = words.last()
-        words.remove(wordToRemove)
-
-        val lastWord = if (words.isEmpty()) null else words.last()
-        _lastWord = lastWord
-
-        return Pair(wordToRemove, lastWord)
+        currentPlayer = event.nextPlayer
     }
 }
