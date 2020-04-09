@@ -103,6 +103,18 @@ internal object WordSnakeTest : Spek({
             }
         }
 
+        Scenario("player takes a turn with a word that's not in the dictionary") {
+            val command = AppendWordCommand(CHANNEL_ID2, players[0], "gasovens")
+            lateinit var result: Throwable
+
+            When("player appends a word that's not in the dictionary") {
+                result = assertFails { game.handle(command) }
+            }
+
+            Then("it should fail") {
+                assertNotNull(result)
+            }
+        }
 
         Scenario("player undoes a turn during the initial state") {
             val command = UndoWordCommand(CHANNEL_ID, players[0])

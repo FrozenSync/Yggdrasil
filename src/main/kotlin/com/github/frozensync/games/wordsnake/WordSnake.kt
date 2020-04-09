@@ -29,8 +29,9 @@ internal class WordSnake(event: GameCreatedEvent) {
 
         when {
             word.isBlank() -> throw InvalidWordException("Word \"$word\" cannot be blank.")
-            lastWord != null && !word.startsWithLastLetterOf(lastWord) -> throw InvalidWordException("Word \"$word\" does not start with the last letter of \"$lastWord\".")
-            words.contains(word) -> throw InvalidWordException("Word \"$word\" has already been used.")
+            lastWord != null && !word.startsWithLastLetterOf(lastWord) -> throw InvalidWordException("\"$word\" does not start with the last letter of \"$lastWord\".")
+            words.contains(word) -> throw InvalidWordException("\"$word\" has already been used.")
+            !DICTIONARY.contains(word) -> throw InvalidWordException(""""$word" is not in the dictionary.""")
         }
 
         return WordAppendedEvent(command.channelId, word, players.nextPlayer(currentPlayer))
