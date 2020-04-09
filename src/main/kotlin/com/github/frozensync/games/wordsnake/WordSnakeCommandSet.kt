@@ -53,12 +53,13 @@ object WordSnakeCommandSet : CommandSet {
 
             val game = wordSnakeRepository.findByChannel(channelId)
             if (game == null) {
-                channel.createMessage(NO_ONGOING_GAME_MESSAGE)
+                channel.createMessage(NO_ONGOING_GAME_MESSAGE).awaitFirst()
                 return@h
             }
 
+            val player = event.message.author.map { Player(it.id.asLong()) }.orElse(null) ?: return@h
             val appendWordCommand = event.message.content
-                .map { AppendWordCommand(channelId, word = CommandArgs(it).nextWord()) }
+                .map { AppendWordCommand(channelId, player, CommandArgs(it).nextWord()) }
                 .orElse(null) ?: return@h
 
             val message = try { // TODO replace with Either<>
@@ -81,11 +82,12 @@ object WordSnakeCommandSet : CommandSet {
 
             val game = wordSnakeRepository.findByChannel(channelId)
             if (game == null) {
-                channel.createMessage(NO_ONGOING_GAME_MESSAGE)
+                channel.createMessage(NO_ONGOING_GAME_MESSAGE).awaitFirst()
                 return@h
             }
 
-            val undoWordCommand = UndoWordCommand(channelId)
+            val player = event.message.author.map { Player(it.id.asLong()) }.orElse(null) ?: return@h
+            val undoWordCommand = UndoWordCommand(channelId, player)
             val wordUndoneEvent = game.handle(undoWordCommand) ?: return@h
             eventService.save(wordUndoneEvent)
 

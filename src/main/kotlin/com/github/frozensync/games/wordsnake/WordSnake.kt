@@ -22,6 +22,7 @@ internal class WordSnake(event: GameCreatedEvent) {
 
     fun handle(command: AppendWordCommand): WordAppendedEvent {
         if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
+        if (currentPlayer != command.player) throw IllegalArgumentException("Another player's turn")
 
         val word = command.word
         val lastWord = _lastWord
@@ -45,6 +46,7 @@ internal class WordSnake(event: GameCreatedEvent) {
 
     fun handle(command: UndoWordCommand): WordUndoneEvent? {
         if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
+        if (currentPlayer != command.player) throw IllegalArgumentException("Another player's turn")
 
         val lastWord = _lastWord ?: return null
         val currentWord = if (words.size == 1) null else words.last { it != lastWord }

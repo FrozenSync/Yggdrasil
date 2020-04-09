@@ -46,7 +46,7 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("player takes a turn") {
-            val command = AppendWordCommand(CHANNEL_ID, "aap")
+            val command = AppendWordCommand(CHANNEL_ID, players[0], "aap")
             lateinit var result: WordAppendedEvent
 
             When("a player takes a turn with a valid word") {
@@ -63,8 +63,8 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("a round passes") {
-            val command1 = AppendWordCommand(CHANNEL_ID, "aap")
-            val command2 = AppendWordCommand(CHANNEL_ID, "peer")
+            val command1 = AppendWordCommand(CHANNEL_ID, players[0], "aap")
+            val command2 = AppendWordCommand(CHANNEL_ID, players[1], "peer")
             lateinit var result: WordAppendedEvent
 
             When("a full round passes") {
@@ -73,14 +73,25 @@ internal object WordSnakeTest : Spek({
             }
 
             Then("it should be the first player's turn again") {
-                val firstPlayer = gameCreatedEvent.nextPlayer
+                assertEquals(players[0], result.nextPlayer)
+            }
+        }
 
-                assertEquals(firstPlayer, result.nextPlayer)
+        Scenario("player takes a turn while it's not his turn") {
+            val command = AppendWordCommand(CHANNEL_ID2, players[1], "aap")
+            lateinit var result: Throwable
+
+            When("a player takes a turn while it's not his turn") {
+                result = assertFails { game.handle(command) }
+            }
+
+            Then("it should fail") {
+                assertTrue { result is IllegalArgumentException }
             }
         }
 
         Scenario("player takes a turn in the wrong channel") {
-            val command = AppendWordCommand(CHANNEL_ID2, "aap")
+            val command = AppendWordCommand(CHANNEL_ID2, players[0], "aap")
             lateinit var result: Throwable
 
             When("a player takes a turn in the wrong channel") {
@@ -94,7 +105,7 @@ internal object WordSnakeTest : Spek({
 
 
         Scenario("player undoes a turn during the initial state") {
-            val command = UndoWordCommand(CHANNEL_ID)
+            val command = UndoWordCommand(CHANNEL_ID, players[0])
             var result: WordUndoneEvent? = null
 
             When("a player undoes a turn during the initial state") {
@@ -107,14 +118,14 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("player undoes a turn resulting in an initial state") {
-            val appendCommand = AppendWordCommand(CHANNEL_ID, "aap")
+            val appendCommand = AppendWordCommand(CHANNEL_ID, players[0], "aap")
             lateinit var appendEvent: WordAppendedEvent
 
             Given("a non-initial game state with one word") {
                 appendEvent = game.handle(appendCommand).also { game.apply(it) }
             }
 
-            val undoCommand = UndoWordCommand(CHANNEL_ID)
+            val undoCommand = UndoWordCommand(CHANNEL_ID, players[1])
             var result: WordUndoneEvent? = null
 
             When("a player undoes a turn resulting in an initial state") {
@@ -132,8 +143,8 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("player undoes a turn") {
-            val appendCommand1 = AppendWordCommand(CHANNEL_ID, "aap")
-            val appendCommand2 = AppendWordCommand(CHANNEL_ID, "peer")
+            val appendCommand1 = AppendWordCommand(CHANNEL_ID, players[0], "aap")
+            val appendCommand2 = AppendWordCommand(CHANNEL_ID, players[1], "peer")
             lateinit var appendEvent1: WordAppendedEvent
             lateinit var appendEvent2: WordAppendedEvent
 
@@ -142,7 +153,7 @@ internal object WordSnakeTest : Spek({
                 appendEvent2 = game.handle(appendCommand2).also { game.apply(it); }
             }
 
-            val undoCommand = UndoWordCommand(CHANNEL_ID)
+            val undoCommand = UndoWordCommand(CHANNEL_ID, players[0])
             var result: WordUndoneEvent? = null
 
             When("player undoes a turn") {
@@ -156,6 +167,19 @@ internal object WordSnakeTest : Spek({
 
             And("it should be the previous player's turn") {
                 assertEquals(appendEvent1.nextPlayer, result?.nextPlayer)
+            }
+        }
+
+        Scenario("player undoes a turn while it's not his turn") {
+            val command = UndoWordCommand(CHANNEL_ID, players[1])
+            lateinit var result: Throwable
+
+            When("a player undoes a turn while it's not his turn") {
+                result = assertFails { game.handle(command) }
+            }
+
+            Then("it should fail") {
+                assertTrue { result is IllegalArgumentException }
             }
         }
     }
