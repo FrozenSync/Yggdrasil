@@ -5,10 +5,7 @@ import com.github.frozensync.USER_ID
 import com.github.frozensync.USER_ID2
 import org.spekframework.spek2.Spek
 import org.spekframework.spek2.style.gherkin.Feature
-import kotlin.test.assertEquals
-import kotlin.test.assertFails
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
+import kotlin.test.*
 
 @Suppress("unused")
 internal object WordSnakeTest : Spek({
@@ -99,6 +96,44 @@ internal object WordSnakeTest : Spek({
 
             Then("it should be the first player's turn again") {
                 assertEquals(initGame.currentPlayer, result.currentPlayer)
+            }
+        }
+
+        Scenario("player forfeits") {
+            lateinit var forfeitingPlayer: Player
+            lateinit var result: WordSnake
+
+            When("a player forfeits") {
+                forfeitingPlayer = initGame.currentPlayer
+                result = initGame.removePlayer(forfeitingPlayer)
+            }
+
+            Then("he should be removed from the game") {
+                assertFalse { result.players.contains(forfeitingPlayer) }
+            }
+
+            And("turn should move to the next player") {
+                assertNotEquals(forfeitingPlayer, result.currentPlayer)
+            }
+        }
+
+        Scenario("player wins by forfeit") {
+            lateinit var result: WordSnake
+
+            Given("a two-player game") {
+                // initGame is already a two-player game
+            }
+
+            When("a player forfeits") {
+                result = initGame.removePlayer()
+            }
+
+            Then("it should have one remaining player") {
+                assertTrue { result.players.size == 1 }
+            }
+
+            And("the game is finished") {
+                assertTrue { result.isFinished() }
             }
         }
     }

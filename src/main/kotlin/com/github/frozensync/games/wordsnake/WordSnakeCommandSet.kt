@@ -56,10 +56,34 @@ object WordSnakeCommandSet : CommandSet {
                 val result = game.appendWord(word)
                 wordSnakeRepository.save(result)
 
-                """Word: ${result.currentWord}
-                    |Turn ${result.turn}: ${UserId(result.currentPlayer.id)}
-                """.trimMargin()
+                createTurnMessage(result)
             } catch (e: InvalidWordException) {
+                e.message!!
+            }
+            channel.createMessage(message).awaitFirst()
+        }
+
+        this["forfeit"] = h@{ event ->
+            val player = event.message.author.map { Player(it.id.asLong()) }.orElse(null) ?: return@h
+            val channel = event.message.channel.awaitFirst()
+            val channelId = channel.id.asLong()
+
+            val game = wordSnakeRepository.findById(channelId)
+            if (game == null) {
+                channel.createMessage(NO_GAME_FOUND).awaitFirst()
+                return@h
+            }
+
+            val message = try {
+                val result = game.removePlayer(player)
+                if (result.isFinished()) {
+                    wordSnakeRepository.delete(result)
+                    createVictoryMessage(result)
+                } else {
+                    wordSnakeRepository.save(result)
+                    createTurnMessage(result)
+                }
+            } catch (e: IllegalArgumentException) {
                 e.message!!
             }
             channel.createMessage(message).awaitFirst()
@@ -71,9 +95,7 @@ object WordSnakeCommandSet : CommandSet {
 
             val message = when (val game = wordSnakeRepository.findById(channelId)) {
                 null -> NO_GAME_FOUND
-                else -> """Word: ${game.currentWord}
-                            |Turn ${game.turn}: ${UserId(game.currentPlayer.id)}
-                        """.trimMargin()
+                else -> createTurnMessage(game)
             }
             channel.createMessage(message).awaitFirst()
         }
@@ -94,4 +116,12 @@ object WordSnakeCommandSet : CommandSet {
             channel.createMessage(message).awaitFirst()
         }
     }
+
+    private fun createTurnMessage(game: WordSnake) =
+        """Word: ${game.currentWord}
+            |Turn ${game.turn}: ${UserId(game.currentPlayer.id)}
+        """.trimMargin()
+
+    private fun createVictoryMessage(game: WordSnake) =
+        "Congratulations ${UserId(game.currentPlayer.id)}, you won!"
 }
