@@ -1,4 +1,3 @@
-import org.jetbrains.kotlin.config.KotlinCompilerVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -11,8 +10,8 @@ group = "com.github.frozensync"
 version = "1.0-SNAPSHOT"
 
 val kotlinVersion by extra("1.3.70")
-val kotlinCouroutinesVersion by extra("1.3.5")
-val kotlinSerializationVersion by extra("0.20.0")
+val kotlinCoroutinesVersion by extra("1.3.5")
+val kotlinCollectionsImmutableVersion by extra("0.3.2")
 
 val discord4jVersion by extra("3.0.13")
 val kotlinLoggingVersion by extra("1.7.9")
@@ -25,10 +24,10 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib", KotlinCompilerVersion.VERSION))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCouroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCouroutinesVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$kotlinSerializationVersion")
+    implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCoroutinesVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:$kotlinCollectionsImmutableVersion")
 
     implementation("com.discord4j:discord4j-core:$discord4jVersion")
 

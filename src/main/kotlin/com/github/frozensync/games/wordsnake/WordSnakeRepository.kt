@@ -1,28 +1,20 @@
 package com.github.frozensync.games.wordsnake
 
 internal interface WordSnakeRepository {
-    suspend fun findByChannel(channelId: Long): WordSnake?
-
-    fun on(event: GameCreatedEvent)
-    fun on(event: WordAppendedEvent)
-    fun on(event: WordUndoneEvent)
+    suspend fun findById(id: Long): WordSnake?
+    suspend fun exists(id: Long): Boolean
+    suspend fun save(game: WordSnake)
 }
 
-internal object InMemoryWordSnakeRepository : WordSnakeRepository {
+internal class InMemoryWordSnakeRepository : WordSnakeRepository {
 
     private val map = mutableMapOf<Long, WordSnake>()
 
-    override suspend fun findByChannel(channelId: Long): WordSnake? = map[channelId]
+    override suspend fun findById(id: Long): WordSnake? = map[id]
 
-    override fun on(event: GameCreatedEvent) {
-        map[event.channelId] = WordSnake(event)
-    }
+    override suspend fun exists(id: Long) = map.contains(id)
 
-    override fun on(event: WordAppendedEvent) {
-        map[event.channelId]?.apply(event)
-    }
-
-    override fun on(event: WordUndoneEvent) {
-        map[event.channelId]?.apply(event)
+    override suspend fun save(game: WordSnake) {
+        map[game.id] = game
     }
 }

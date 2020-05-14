@@ -1,77 +1,51 @@
 package com.github.frozensync.games.wordsnake
 
-import java.util.*
+import kotlinx.collections.immutable.persistentSetOf
+import java.nio.file.Files
+import java.nio.file.Path
+import java.util.stream.Collectors
 
-internal class WordSnake(event: GameCreatedEvent) {
+private val DICTIONARY: Set<String> by lazy {
+    Thread.currentThread().contextClassLoader.getResource("basiswoorden-gekeurd.txt")
+        ?.let { Path.of(it.toURI()) }
+        ?.let { Files.lines(it).collect(Collectors.toUnmodifiableSet()) }
+        ?: throw IllegalStateException("Cannot load dictionary")
+}
 
-    private val channelId: Long = event.channelId
-
-    private val words: MutableSet<String> = LinkedHashSet(256)
-    private var _lastWord: String? = null
-
-    private val players: List<Player> = event.players
-    private var currentPlayer = event.nextPlayer
-
-    companion object {
-        fun handle(command: CreateGameCommand): GameCreatedEvent? {
-            if (command.players.size < 2) return null
-
-            return GameCreatedEvent(command.channelId, command.players, command.players[0])
-        }
-    }
-
-    fun handle(command: AppendWordCommand): WordAppendedEvent {
-        if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
-        if (currentPlayer != command.player) throw IllegalArgumentException("Another player's turn")
-
-        val word = command.word
-        val lastWord = _lastWord
-
+internal data class WordSnake(
+    val id: Long,
+    val players: List<Player>,
+    val currentPlayer: Player = players[0],
+    val words: Set<String> = persistentSetOf(),
+    val currentWord: String? = null,
+    val turn: Int = 1
+) {
+    fun appendWord(word: String): WordSnake {
         when {
-            word.isBlank() -> throw InvalidWordException("Word \"$word\" cannot be blank.")
-            lastWord != null && !word.startsWithLastLetterOf(lastWord) -> throw InvalidWordException("\"$word\" does not start with the last letter of \"$lastWord\".")
-            words.contains(word) -> throw InvalidWordException("\"$word\" has already been used.")
+            currentWord != null && currentWord.last() != word.first() -> throw InvalidWordException(""""$word" does not start with the last letter of "$currentWord".""")
+            words.contains(word) -> throw InvalidWordException(""""$word" has already been used.""")
             !DICTIONARY.contains(word) -> throw InvalidWordException(""""$word" is not in the dictionary.""")
         }
 
-        return WordAppendedEvent(command.channelId, word, players.nextPlayer(currentPlayer))
+        return copy(
+            currentPlayer = nextPlayer(),
+            words = words + word,
+            currentWord = word,
+            turn = turn + 1
+        )
     }
 
-    private fun String.startsWithLastLetterOf(s: String) = first() == s.last()
-
-    private fun List<Player>.nextPlayer(currentPlayer: Player): Player {
-        val currentIndex = indexOf(currentPlayer)
-        val nextIndex = if (currentIndex == size - 1) 0 else currentIndex + 1
-        return this[nextIndex]
+    private fun nextPlayer(): Player {
+        val currentIndex = players.indexOf(currentPlayer)
+        val nextIndex = if (currentIndex == players.size - 1) 0 else currentIndex + 1
+        return players[nextIndex]
     }
 
-    fun handle(command: UndoWordCommand): WordUndoneEvent? {
-        if (channelId != command.channelId) throw IllegalArgumentException("Wrong channel id")
-        if (currentPlayer != command.player) throw IllegalArgumentException("Another player's turn")
-
-        val lastWord = _lastWord ?: return null
-        val currentWord = if (words.size == 1) null else words.last { it != lastWord }
-
-        return WordUndoneEvent(command.channelId, lastWord, currentWord, players.previousPlayer(currentPlayer))
-    }
-
-    private fun List<Player>.previousPlayer(currentPlayer: Player): Player {
-        val currentIndex = indexOf(currentPlayer)
-        val nextIndex = if (currentIndex == 0) size - 1 else currentIndex - 1
-        return this[nextIndex]
-    }
-
-    fun apply(event: WordAppendedEvent) {
-        words += event.word
-        _lastWord = event.word
-
-        currentPlayer = event.nextPlayer
-    }
-
-    fun apply(event: WordUndoneEvent) {
-        words -= event.removedWord
-        _lastWord = event.currentWord
-
-        currentPlayer = event.nextPlayer
-    }
+    fun getStatistics() = WordSnakeStatistics(this)
 }
+
+internal class WordSnakeStatistics(
+    private val game: WordSnake,
+    val numberOfWords: Int = game.turn - 1,
+    val snakeLength: Int = game.words.fold(0) { acc, word -> acc + word.length }
+)
