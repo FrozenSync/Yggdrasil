@@ -28,9 +28,9 @@ fun main() = runBlocking<Unit> {
     val client = DiscordClientBuilder(token).build()
 
     val commandRepository = CommandRegistry
-        .register(MonitoringCommandSet)
-        .register(FunCommandSet)
-        .register(WordSnakeCommandSet)
+        .register(MonitoringCommandSet())
+        .register(FunCommandSet())
+        .register(WordSnakeCommandSet())
 
     client.eventDispatcher.on(MessageCreateEvent::class.java).asFlow()
         .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }

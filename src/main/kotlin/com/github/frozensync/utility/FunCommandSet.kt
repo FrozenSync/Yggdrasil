@@ -6,7 +6,7 @@ import com.github.frozensync.command.CommandSet
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlin.random.Random
 
-object FunCommandSet : CommandSet {
+class FunCommandSet : CommandSet {
 
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["pick"] = h@{ event ->
