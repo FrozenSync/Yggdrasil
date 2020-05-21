@@ -22,6 +22,7 @@ internal data class WordSnake(
 ) {
     fun appendWord(word: String): WordSnake {
         when {
+            isFinished() -> return this
             currentWord != null && currentWord.last() != word.first() -> throw InvalidWordException(""""$word" does not start with the last letter of "$currentWord".""")
             words.contains(word) -> throw InvalidWordException(""""$word" has already been used.""")
             !DICTIONARY.contains(word) -> throw InvalidWordException(""""$word" is not in the dictionary.""")
@@ -40,6 +41,23 @@ internal data class WordSnake(
         val nextIndex = if (currentIndex == players.size - 1) 0 else currentIndex + 1
         return players[nextIndex]
     }
+
+    /**
+     * Returns a new instance with [player] removed from the game. Returns the same instance if the game is already finished.
+     */
+    fun removePlayer(player: Player = currentPlayer): WordSnake {
+        if (isFinished()) return this
+
+        return copy(
+            players = players - player,
+            currentPlayer = if (player == currentPlayer) nextPlayer() else currentPlayer
+        )
+    }
+
+    /**
+     * Returns true if the game is finished; false otherwise.
+     */
+    fun isFinished() = players.size == 1
 
     fun getStatistics() = WordSnakeStatistics(this)
 }
