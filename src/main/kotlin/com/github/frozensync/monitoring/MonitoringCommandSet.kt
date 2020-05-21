@@ -6,7 +6,7 @@ import kotlinx.coroutines.reactive.awaitFirst
 import java.lang.management.ManagementFactory
 import java.time.Duration
 
-object MonitoringCommandSet : CommandSet {
+class MonitoringCommandSet : CommandSet {
 
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["ping"] = { event ->

@@ -6,10 +6,10 @@ import com.github.frozensync.command.CommandSet
 import com.github.frozensync.discord.UserId
 import kotlinx.coroutines.reactive.awaitFirst
 
-object WordSnakeCommandSet : CommandSet {
+private const val GAME_FOUND = "Found an on-going game in this channel. Please finish it before creating a new one."
+private const val NO_GAME_FOUND = "No game found in this channel. Please create one before playing."
 
-    private const val GAME_FOUND = "Found an on-going game in this channel. Please finish it before creating a new one."
-    private const val NO_GAME_FOUND = "No game found in this channel. Please create one before playing."
+class WordSnakeCommandSet : CommandSet {
 
     private val wordSnakeRepository: WordSnakeRepository = InMemoryWordSnakeRepository()
 

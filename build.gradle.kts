@@ -13,6 +13,7 @@ val kotlinVersion by extra("1.3.70")
 val kotlinCoroutinesVersion by extra("1.3.5")
 val kotlinCollectionsImmutableVersion by extra("0.3.2")
 
+val koinVersion by extra("2.1.5")
 val discord4jVersion by extra("3.0.13")
 val kotlinLoggingVersion by extra("1.7.9")
 val logbackVersion by extra("1.2.3")
@@ -29,6 +30,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCoroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:$kotlinCollectionsImmutableVersion")
 
+    implementation("org.koin:koin-core:$koinVersion")
     implementation("com.discord4j:discord4j-core:$discord4jVersion")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
