@@ -13,16 +13,18 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
+import org.koin.dsl.koinApplication
 import kotlin.system.exitProcess
 
-val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger { }
 
-fun main(args: Array<String>) = runBlocking<Unit> {
-    if (args.isEmpty()) {
-        System.err.println("Please supply a Discord bot token in args.")
-        exitProcess(1)
+fun main() = runBlocking<Unit> {
+    val koinApplication = koinApplication {
+        environmentProperties()
     }
-    val token = args[0]
+    val koin = koinApplication.koin
+
+    val token = koin.getProperty<String>("YGGDRASIL_TOKEN") ?: exitProcess(1)
     val client = DiscordClientBuilder(token).build()
 
     val commandRepository = CommandRegistry
