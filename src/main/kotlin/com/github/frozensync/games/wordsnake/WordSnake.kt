@@ -1,6 +1,7 @@
 package com.github.frozensync.games.wordsnake
 
 import kotlinx.collections.immutable.persistentSetOf
+import org.bson.codecs.pojo.annotations.BsonId
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.stream.Collectors
@@ -13,9 +14,9 @@ private val DICTIONARY: Set<String> by lazy {
 }
 
 internal data class WordSnake(
-    val id: Long,
+    @BsonId val id: Long,
     val players: List<Player>,
-    val currentPlayer: Player = players[0],
+    val currentPlayer: Player? = players.firstOrNull(),
     val words: Set<String> = persistentSetOf(),
     val currentWord: String? = null,
     val turn: Int = 1
@@ -36,7 +37,10 @@ internal data class WordSnake(
         )
     }
 
-    private fun nextPlayer(): Player {
+    private fun nextPlayer(): Player? {
+        if (players.size < 2) return currentPlayer
+        if (currentPlayer == null) return players.first()
+
         val currentIndex = players.indexOf(currentPlayer)
         val nextIndex = if (currentIndex == players.size - 1) 0 else currentIndex + 1
         return players[nextIndex]
@@ -45,8 +49,8 @@ internal data class WordSnake(
     /**
      * Returns a new instance with [player] removed from the game. Returns the same instance if the game is already finished.
      */
-    fun removePlayer(player: Player = currentPlayer): WordSnake {
-        if (isFinished()) return this
+    fun removePlayer(player: Player? = currentPlayer): WordSnake {
+        if (player == null || isFinished()) return this
 
         return copy(
             players = players - player,
@@ -59,11 +63,10 @@ internal data class WordSnake(
      */
     fun isFinished() = players.size == 1
 
-    fun getStatistics() = WordSnakeStatistics(this)
+    fun computeStatistics() = WordSnakeStatistics(this)
 }
 
-internal class WordSnakeStatistics(
-    private val game: WordSnake,
-    val numberOfWords: Int = game.turn - 1,
+internal class WordSnakeStatistics(game: WordSnake) {
+    val numberOfWords: Int = game.turn - 1
     val snakeLength: Int = game.words.fold(0) { acc, word -> acc + word.length }
-)
+}

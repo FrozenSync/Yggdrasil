@@ -9,16 +9,14 @@ import kotlinx.coroutines.reactive.awaitFirst
 private const val GAME_FOUND = "Found an on-going game in this channel. Please finish it before creating a new one."
 private const val NO_GAME_FOUND = "No game found in this channel. Please create one before playing."
 
-class WordSnakeCommandSet : CommandSet {
-
-    private val wordSnakeRepository: WordSnakeRepository = InMemoryWordSnakeRepository()
+internal class WordSnakeCommandSet(private val wordSnakeRepository: WordSnakeRepository) : CommandSet {
 
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["newgame"] = h@{ event ->
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 
-            if (wordSnakeRepository.exists(channelId)) {
+            if (wordSnakeRepository.existsById(channelId)) {
                 channel.createMessage(GAME_FOUND)
                 return@h
             }
@@ -31,7 +29,7 @@ class WordSnakeCommandSet : CommandSet {
             val playerMentions = result.players.map { UserId(it.id).toString() }
             val message =
                 """Created a new game with the following players: $playerMentions
-                    |Turn 1: ${UserId(result.currentPlayer.id)}
+                    |Turn 1: ${result.currentPlayer?.id?.let { UserId(it) }}
                 """.trimMargin()
             channel.createMessage(message).awaitFirst()
         }
@@ -107,7 +105,7 @@ class WordSnakeCommandSet : CommandSet {
             val message = when (val game = wordSnakeRepository.findById(channelId)) {
                 null -> NO_GAME_FOUND
                 else -> {
-                    val statistics = game.getStatistics()
+                    val statistics = game.computeStatistics()
                     """Length: ${statistics.snakeLength}
                         |Number of words: ${statistics.numberOfWords}
                     """.trimMargin()
@@ -119,9 +117,9 @@ class WordSnakeCommandSet : CommandSet {
 
     private fun createTurnMessage(game: WordSnake) =
         """Word: ${game.currentWord}
-            |Turn ${game.turn}: ${UserId(game.currentPlayer.id)}
+            |Turn ${game.turn}: ${game.currentPlayer?.id?.let { UserId(it) }}
         """.trimMargin()
 
     private fun createVictoryMessage(game: WordSnake) =
-        "Congratulations ${UserId(game.currentPlayer.id)}, you won!"
+        "Congratulations ${game.currentPlayer?.id?.let { UserId(it) }}, you won!"
 }

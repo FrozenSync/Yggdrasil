@@ -2,7 +2,9 @@ package com.github.frozensync
 
 import com.github.frozensync.command.CommandRegistry
 import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
+import com.github.frozensync.games.wordsnake.wordSnakeModule
 import com.github.frozensync.monitoring.MonitoringCommandSet
+import com.github.frozensync.persistence.mongodb.mongoModule
 import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.DiscordClientBuilder
 import discord4j.core.event.domain.message.MessageCreateEvent
@@ -13,14 +15,15 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
-import org.koin.dsl.koinApplication
+import org.koin.core.context.startKoin
 import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger { }
 
 fun main() = runBlocking<Unit> {
-    val koinApplication = koinApplication {
+    val koinApplication = startKoin {
         environmentProperties()
+        modules(wordSnakeModule, mongoModule)
     }
     val koin = koinApplication.koin
 
@@ -30,7 +33,7 @@ fun main() = runBlocking<Unit> {
     val commandRepository = CommandRegistry
         .register(MonitoringCommandSet())
         .register(FunCommandSet())
-        .register(WordSnakeCommandSet())
+        .register(koin.get<WordSnakeCommandSet>())
 
     client.eventDispatcher.on(MessageCreateEvent::class.java).asFlow()
         .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }

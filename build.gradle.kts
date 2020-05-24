@@ -15,6 +15,8 @@ val kotlinCollectionsImmutableVersion by extra("0.3.2")
 
 val koinVersion by extra("2.1.5")
 val discord4jVersion by extra("3.0.13")
+val kMongoVersion by extra("4.0.1")
+
 val kotlinLoggingVersion by extra("1.7.9")
 val logbackVersion by extra("1.2.3")
 val spekVersion by extra("2.0.10")
@@ -32,6 +34,7 @@ dependencies {
 
     implementation("org.koin:koin-core:$koinVersion")
     implementation("com.discord4j:discord4j-core:$discord4jVersion")
+    implementation("org.litote.kmongo:kmongo-coroutine-native:${kMongoVersion}")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")
