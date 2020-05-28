@@ -2,12 +2,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     application
+    id("com.github.johnrengelman.shadow") version "5.2.0"
     kotlin("jvm") version "1.3.70"
     kotlin("plugin.serialization") version "1.3.70"
 }
 
 group = "com.github.frozensync"
 version = "1.0-SNAPSHOT"
+
+application {
+    mainClassName = "com.github.frozensync.MainKt"
+}
 
 val kotlinVersion by extra("1.3.70")
 val kotlinCoroutinesVersion by extra("1.3.5")
@@ -56,5 +61,15 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Test> {
     useJUnitPlatform {
         includeEngines("spek2")
+    }
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            mapOf(
+                "Main-Class" to application.mainClassName
+            )
+        )
     }
 }
