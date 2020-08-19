@@ -69,3 +69,7 @@ tasks.withType<Jar> {
         )
     }
 }
+
+tasks.named<Wrapper>("wrapper") {
+    gradleVersion = "6.6"
+}
