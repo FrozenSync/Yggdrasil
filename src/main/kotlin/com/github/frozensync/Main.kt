@@ -1,21 +1,19 @@
 package com.github.frozensync
 
-import com.github.frozensync.command.CommandRegistry
-import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
+import com.github.frozensync.command.CommandHandler
 import com.github.frozensync.games.wordsnake.wordSnakeModule
-import com.github.frozensync.monitoring.MonitoringCommandSet
 import com.github.frozensync.persistence.mongodb.mongoModule
-import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.DiscordClient
+import discord4j.core.event.domain.Event
 import discord4j.core.event.domain.message.MessageCreateEvent
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.mono
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
+import reactor.core.publisher.Flux
 import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger { }
@@ -26,27 +24,16 @@ fun main() = runBlocking<Unit> {
         modules(wordSnakeModule, mongoModule)
     }
     val koin = koinApplication.koin
-
-    val token = koin.getProperty("YGGDRASIL_TOKEN") ?: exitProcess(1)
-    val commandRepository = CommandRegistry
-        .register(MonitoringCommandSet())
-        .register(FunCommandSet())
-        .register(koin.get<WordSnakeCommandSet>())
+    val token = koin.getProperty("YGGDRASIL_TOKEN") ?: run {
+        logger.error { "Environment variable not found: YGGDRASIL_TOKEN" }
+        exitProcess(1)
+    }
 
     DiscordClient.create(token).withGateway { client ->
         mono {
-            launch { client.on(MessageCreateEvent::class.java).asFlow()
-                .filter { event -> event.message.author.map { !it.isBot }.orElse(false) }
-                .onEach { event ->
-                    logger.trace { event.message.content }
-
-                    val commandName = event.message.content.parseCommandName()
-                    val command = commandRepository.findByName(commandName)
-                    command?.invoke(event)
-                }
-            }
+            launch { client.on(MessageCreateEvent::class.java).addListener(CommandHandler::executeCommands) }
         }
     }.block()
 }
 
-private fun String.parseCommandName() = this.substringBefore(' ').removePrefix("!")
+private suspend fun <E : Event> Flux<E>.addListener(action: suspend (Flow<E>) -> Unit) = action.invoke(asFlow())
