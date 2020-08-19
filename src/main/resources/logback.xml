@@ -6,16 +6,11 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="io.netty" level="INFO"/>
-    <logger name="reactor" level="INFO"/>
+    <logger name="com.github.frozensync" level="TRACE"/>
 
-    <logger name="discord4j.core" level="INFO"/>
-    <logger name="discord4j.gateway" level="INFO"/>
-    <logger name="discord4j.rest" level="INFO"/>
-    <logger name="discord4j.dispatch" level="INFO"/>
-    <logger name="discord4j.events" level="INFO"/>
+    <logger name="org.mongodb.driver" level="ERROR"/>
 </configuration>
