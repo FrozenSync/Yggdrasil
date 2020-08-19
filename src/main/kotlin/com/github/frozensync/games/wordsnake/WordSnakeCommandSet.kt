@@ -5,6 +5,7 @@ import com.github.frozensync.command.CommandArgs
 import com.github.frozensync.command.CommandSet
 import com.github.frozensync.discord.UserId
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 
 private const val GAME_FOUND = "Found an on-going game in this channel. Please finish it before creating a new one."
 private const val NO_GAME_FOUND = "No game found in this channel. Please create one before playing."
@@ -23,7 +24,11 @@ internal class WordSnakeCommandSet(private val wordSnakeRepository: WordSnakeRep
 
             val players = event.message.userMentionIds.map { Player(it.asLong()) }
             val result = WordSnake(channelId, players)
-            // TODO validation
+            val errors = WordSnakeValidator.validate(result)
+            if (errors.hasErrors()) {
+                channel.createMessage(errors.getReasons()).awaitSingle()
+                return@h
+            }
             wordSnakeRepository.save(result)
 
             val playerMentions = result.players.map { UserId(it.id).toString() }
