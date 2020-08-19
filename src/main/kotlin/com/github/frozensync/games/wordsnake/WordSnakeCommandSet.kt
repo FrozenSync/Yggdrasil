@@ -36,7 +36,7 @@ internal class WordSnakeCommandSet(private val wordSnakeRepository: WordSnakeRep
 
         this["n"] = h@{ event ->
             val player = event.message.author.map { Player(it.id.asLong()) }.orElse(null) ?: return@h
-            val word = event.message.content.map { CommandArgs(it).nextWord() }.orElse(null) ?: return@h
+            val word = event.message.content.let { CommandArgs(it).nextWord() } ?: return@h
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 

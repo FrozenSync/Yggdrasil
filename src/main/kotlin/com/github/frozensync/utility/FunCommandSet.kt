@@ -11,9 +11,7 @@ class FunCommandSet : CommandSet {
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["pick"] = h@{ event ->
             val channel = event.message.channel.awaitFirst()
-            val message = event.message.content
-                .map { CommandArgs(it).split("|").random() }
-                .orElse(null) ?: return@h
+            val message = event.message.content.let { CommandArgs(it).split("|").random() }
 
             channel.createMessage(message).awaitFirst()
         }
