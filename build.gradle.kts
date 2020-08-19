@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     application
     id("com.github.johnrengelman.shadow") version "5.2.0"
-    kotlin("jvm") version "1.3.70"
-    kotlin("plugin.serialization") version "1.3.70"
+    kotlin("jvm") version "1.4.0"
+    kotlin("plugin.serialization") version "1.4.0"
 }
 
 group = "com.github.frozensync"
@@ -14,8 +14,8 @@ application {
     mainClassName = "com.github.frozensync.MainKt"
 }
 
-val kotlinVersion by extra("1.3.70")
-val kotlinCoroutinesVersion by extra("1.3.5")
+val kotlinVersion by extra("1.4.0")
+val kotlinCoroutinesVersion by extra("1.3.9")
 val kotlinCollectionsImmutableVersion by extra("0.3.2")
 
 val koinVersion by extra("2.1.5")
@@ -32,7 +32,6 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:$kotlinCoroutinesVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm:$kotlinCollectionsImmutableVersion")
@@ -52,10 +51,7 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
-    kotlinOptions.freeCompilerArgs += listOf(
-        "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        "-Xinline-classes"
-    )
+    kotlinOptions.freeCompilerArgs += "-Xinline-classes"
 }
 
 tasks.withType<Test> {
