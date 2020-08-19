@@ -27,7 +27,7 @@ fun main() = runBlocking<Unit> {
     }
     val koin = koinApplication.koin
 
-    val token = koin.getProperty<String>("YGGDRASIL_TOKEN") ?: exitProcess(1)
+    val token = koin.getProperty("YGGDRASIL_TOKEN") ?: exitProcess(1)
     val client = DiscordClientBuilder(token).build()
 
     val commandRepository = CommandRegistry
