@@ -1,8 +1,8 @@
-package com.github.frozensync.utility
+package com.github.frozensync
 
-import com.github.frozensync.command.Command
-import com.github.frozensync.command.CommandArgs
-import com.github.frozensync.command.CommandSet
+import com.github.frozensync.discord.command.Command
+import com.github.frozensync.discord.command.CommandArgs
+import com.github.frozensync.discord.command.CommandSet
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlin.random.Random
 

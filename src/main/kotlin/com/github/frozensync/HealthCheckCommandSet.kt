@@ -1,12 +1,12 @@
-package com.github.frozensync.monitoring
+package com.github.frozensync
 
-import com.github.frozensync.command.Command
-import com.github.frozensync.command.CommandSet
+import com.github.frozensync.discord.command.Command
+import com.github.frozensync.discord.command.CommandSet
 import kotlinx.coroutines.reactive.awaitFirst
 import java.lang.management.ManagementFactory
 import java.time.Duration
 
-class MonitoringCommandSet : CommandSet {
+class HealthCheckCommandSet : CommandSet {
 
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["ping"] = { event ->

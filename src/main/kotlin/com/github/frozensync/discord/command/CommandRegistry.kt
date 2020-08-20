@@ -1,4 +1,4 @@
-package com.github.frozensync.command
+package com.github.frozensync.discord.command
 
 object CommandRegistry {
 
