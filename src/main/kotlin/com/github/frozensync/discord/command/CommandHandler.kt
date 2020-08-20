@@ -2,7 +2,7 @@ package com.github.frozensync.discord.command
 
 import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
 import com.github.frozensync.HealthCheckCommandSet
-import com.github.frozensync.utility.FunCommandSet
+import com.github.frozensync.FunCommandSet
 import discord4j.core.`object`.entity.Message
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.flow.Flow

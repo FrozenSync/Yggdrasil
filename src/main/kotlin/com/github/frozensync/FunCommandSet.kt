@@ -1,4 +1,4 @@
-package com.github.frozensync.utility
+package com.github.frozensync
 
 import com.github.frozensync.discord.command.Command
 import com.github.frozensync.discord.command.CommandArgs
