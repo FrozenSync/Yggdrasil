@@ -1,8 +1,8 @@
 package com.github.frozensync.games.wordsnake
 
-import com.github.frozensync.command.Command
-import com.github.frozensync.command.CommandArgs
-import com.github.frozensync.command.CommandSet
+import com.github.frozensync.discord.command.Command
+import com.github.frozensync.discord.command.CommandArgs
+import com.github.frozensync.discord.command.CommandSet
 import com.github.frozensync.discord.UserId
 import discord4j.common.util.Snowflake
 import discord4j.core.DiscordClient

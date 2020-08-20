@@ -1,4 +1,4 @@
-package com.github.frozensync.command
+package com.github.frozensync.discord.command
 
 import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
 import com.github.frozensync.monitoring.MonitoringCommandSet

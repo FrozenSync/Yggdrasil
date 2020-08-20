@@ -1,6 +1,6 @@
 package com.github.frozensync
 
-import com.github.frozensync.command.CommandHandler
+import com.github.frozensync.discord.command.CommandHandler
 import com.github.frozensync.discord.discordModule
 import com.github.frozensync.games.wordsnake.wordSnakeModule
 import com.github.frozensync.persistence.mongodb.mongoModule
@@ -15,7 +15,6 @@ import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.koin.core.context.startKoin
 import reactor.core.publisher.Flux
-import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger { }
 

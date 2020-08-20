@@ -1,4 +1,4 @@
-package com.github.frozensync.command
+package com.github.frozensync.discord.command
 
 import discord4j.core.event.domain.message.MessageCreateEvent
 
