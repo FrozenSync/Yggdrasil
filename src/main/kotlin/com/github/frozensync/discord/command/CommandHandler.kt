@@ -1,7 +1,7 @@
 package com.github.frozensync.discord.command
 
 import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
-import com.github.frozensync.monitoring.MonitoringCommandSet
+import com.github.frozensync.HealthCheckCommandSet
 import com.github.frozensync.utility.FunCommandSet
 import discord4j.core.`object`.entity.Message
 import discord4j.core.event.domain.message.MessageCreateEvent
@@ -17,7 +17,7 @@ object CommandHandler : KoinComponent {
     private val logger = KotlinLogging.logger { }
 
     private val commandRepository = CommandRegistry
-        .register(MonitoringCommandSet())
+        .register(HealthCheckCommandSet())
         .register(FunCommandSet())
         .register(get<WordSnakeCommandSet>())
 
