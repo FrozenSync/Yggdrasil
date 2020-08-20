@@ -4,13 +4,39 @@ import com.github.frozensync.command.Command
 import com.github.frozensync.command.CommandArgs
 import com.github.frozensync.command.CommandSet
 import com.github.frozensync.discord.UserId
+import discord4j.common.util.Snowflake
+import discord4j.core.DiscordClient
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
+import mu.KotlinLogging
 
 private const val GAME_FOUND = "Found an on-going game in this channel. Please finish it before creating a new one."
 private const val NO_GAME_FOUND = "No game found in this channel. Please create one before playing."
 
-internal class WordSnakeCommandSet(private val wordSnakeRepository: WordSnakeRepository) : CommandSet {
+internal class WordSnakeCommandSet(
+    private val discordClient: DiscordClient,
+    private val wordSnakeRepository: WordSnakeRepository
+) : CommandSet {
+
+    private val logger = KotlinLogging.logger { }
+
+    private val gameOverNotifications = Channel<WordSnake>(Channel.BUFFERED)
+    private val gameOverListener = GlobalScope.async {
+        gameOverNotifications.consumeEach {
+            logger.info { "Game over: $it" }
+
+            wordSnakeRepository.delete(it)
+
+            val channelId = Snowflake.of(it.id)
+            val channel = discordClient.getChannelById(channelId)
+            val message = createVictoryMessage(it)
+            channel.createMessage(message).awaitSingle()
+        }
+    }
 
     override val commands: Map<String, Command> = mutableMapOf<String, Command>().apply {
         this["newgame"] = h@{ event ->
@@ -23,13 +49,16 @@ internal class WordSnakeCommandSet(private val wordSnakeRepository: WordSnakeRep
             }
 
             val players = event.message.userMentionIds.map { Player(it.asLong()) }
-            val result = WordSnake(channelId, players)
+            val timer = DisqualificationTimer(3000L, wordSnakeRepository, gameOverNotifications)
+            val result = WordSnake(channelId, players, timer = timer)
             val errors = WordSnakeValidator.validate(result)
             if (errors.hasErrors()) {
                 channel.createMessage(errors.getReasons()).awaitSingle()
                 return@h
             }
             wordSnakeRepository.save(result)
+
+            logger.info { "New game: $result" }
 
             val playerMentions = result.players.map { UserId(it.id).toString() }
             val message =

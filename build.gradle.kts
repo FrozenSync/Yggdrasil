@@ -51,7 +51,7 @@ dependencies {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
-    kotlinOptions.freeCompilerArgs += "-Xinline-classes"
+    kotlinOptions.freeCompilerArgs += listOf("-Xinline-classes", "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi")
 }
 
 tasks.withType<Test> {

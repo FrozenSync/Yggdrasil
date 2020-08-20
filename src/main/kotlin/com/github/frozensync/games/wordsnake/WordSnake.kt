@@ -19,15 +19,18 @@ internal data class WordSnake(
     val currentPlayer: Player? = players.firstOrNull(),
     val words: Set<String> = persistentSetOf(),
     val currentWord: String? = null,
-    val turn: Int = 1
+    val turn: Int = 1,
+    @Transient val timer: DisqualificationTimer?,
 ) {
-    fun appendWord(word: String): WordSnake {
+    suspend fun appendWord(word: String): WordSnake {
         when {
             isFinished() -> return this
             currentWord != null && currentWord.last() != word.first() -> throw InvalidWordException(""""$word" does not start with the last letter of "$currentWord".""")
             words.contains(word) -> throw InvalidWordException(""""$word" has already been used.""")
             !DICTIONARY.contains(word) -> throw InvalidWordException(""""$word" is not in the dictionary.""")
         }
+
+        timer?.start(id)
 
         return copy(
             currentPlayer = nextPlayer(),

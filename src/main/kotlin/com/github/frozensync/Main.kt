@@ -1,6 +1,7 @@
 package com.github.frozensync
 
 import com.github.frozensync.command.CommandHandler
+import com.github.frozensync.discord.discordModule
 import com.github.frozensync.games.wordsnake.wordSnakeModule
 import com.github.frozensync.persistence.mongodb.mongoModule
 import discord4j.core.DiscordClient
@@ -21,15 +22,11 @@ private val logger = KotlinLogging.logger { }
 fun main() = runBlocking<Unit> {
     val koinApplication = startKoin {
         environmentProperties()
-        modules(wordSnakeModule, mongoModule)
+        modules(discordModule, wordSnakeModule, mongoModule)
     }
     val koin = koinApplication.koin
-    val token = koin.getProperty("YGGDRASIL_TOKEN") ?: run {
-        logger.error { "Environment variable not found: YGGDRASIL_TOKEN" }
-        exitProcess(1)
-    }
 
-    DiscordClient.create(token).withGateway { client ->
+    koin.get<DiscordClient>().withGateway { client ->
         mono {
             launch { client.on(MessageCreateEvent::class.java).addListener(CommandHandler::executeCommands) }
         }
