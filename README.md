@@ -29,3 +29,4 @@ docker run yggdrasil -e "YGGDRASIL_TOKEN=your_token" -e "MONGODB_URI=your_uri"
 - Koin
 - Spek
 - Docker
+- MongoDB (Atlas)
