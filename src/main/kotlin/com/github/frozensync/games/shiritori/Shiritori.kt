@@ -65,11 +65,4 @@ internal data class Shiritori(
      * Returns true if the game is finished; false otherwise.
      */
     fun isFinished() = players.size == 1
-
-    fun computeStatistics() = ShiritoriStatistics(this)
-}
-
-internal class ShiritoriStatistics(game: Shiritori) {
-    val numberOfWords: Int = game.turn - 1
-    val snakeLength: Int = game.words.fold(0) { acc, word -> acc + word.length }
 }
