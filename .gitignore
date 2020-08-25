@@ -11,3 +11,6 @@ build/
 # Gradle
 .gradle/
 !gradle/wrapper/gradle-wrapper.jar
+
+# Docker
+*.txt
