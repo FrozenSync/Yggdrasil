@@ -1,4 +1,4 @@
-package com.github.frozensync.games.wordsnake
+package com.github.frozensync.games.shiritori
 
 import com.github.frozensync.CHANNEL_ID
 import com.github.frozensync.USER_ID
@@ -8,16 +8,17 @@ import org.spekframework.spek2.style.gherkin.Feature
 import kotlin.test.*
 
 @Suppress("unused")
-internal object WordSnakeTest : Spek({
+internal object ShiritoriTest : Spek({
     Feature("Word snake") {
         val initGame by memoized {
             val players = listOf(Player(USER_ID), Player(USER_ID2))
-            WordSnake(CHANNEL_ID, players)
+            Shiritori(CHANNEL_ID, players)
         }
+
 
         Scenario("player appends a valid word") {
             val word = "aap"
-            lateinit var result: WordSnake
+            lateinit var result: Shiritori
 
             When("a player appends a word that's present in the dictionary") {
                 result = initGame.appendWord("aap")
@@ -37,7 +38,7 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("player appends a word that does not start with the last letter of the current word") {
-            lateinit var game: WordSnake
+            lateinit var game: Shiritori
 
             Given("a non-initial game") {
                 game = initGame.appendWord("aap")
@@ -57,7 +58,7 @@ internal object WordSnakeTest : Spek({
         Scenario("player appends a word that has already been used") {
             val word1 = "ster"
             val word2 = "ras"
-            lateinit var game: WordSnake
+            lateinit var game: Shiritori
 
             Given("a non-initial game") {
                 game = initGame.appendWord(word1).appendWord(word2)
@@ -88,7 +89,7 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("round passes") {
-            lateinit var result: WordSnake
+            lateinit var result: Shiritori
 
             When("all players have had their turn") {
                 result = initGame.appendWord("aap").appendWord("peer")
@@ -101,7 +102,7 @@ internal object WordSnakeTest : Spek({
 
         Scenario("player forfeits") {
             lateinit var forfeitingPlayer: Player
-            lateinit var result: WordSnake
+            lateinit var result: Shiritori
 
             When("a player forfeits") {
                 forfeitingPlayer = initGame.currentPlayer
@@ -118,7 +119,7 @@ internal object WordSnakeTest : Spek({
         }
 
         Scenario("player wins by forfeit") {
-            lateinit var result: WordSnake
+            lateinit var result: Shiritori
 
             Given("a two-player game") {
                 // initGame is already a two-player game
