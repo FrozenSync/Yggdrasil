@@ -10,18 +10,17 @@ import kotlin.test.*
 @Suppress("unused")
 internal object ShiritoriTest : Spek({
     Feature("Word snake") {
-        val initGame by memoized {
+        val subject by memoized {
             val players = listOf(Player(USER_ID), Player(USER_ID2))
             Shiritori(CHANNEL_ID, players)
         }
-
 
         Scenario("player appends a valid word") {
             val word = "aap"
             lateinit var result: Shiritori
 
             When("a player appends a word that's present in the dictionary") {
-                result = initGame.appendWord("aap")
+                result = subject.appendWord("aap")
             }
 
             Then("the word is the new current word") {
@@ -29,11 +28,11 @@ internal object ShiritoriTest : Spek({
             }
 
             And("the turn goes to another player") {
-                assertNotEquals(initGame.currentPlayer, result.currentPlayer)
+                assertNotEquals(subject.currentPlayer, result.currentPlayer)
             }
 
             And("the turn number increments") {
-                assertEquals(initGame.turn + 1, result.turn)
+                assertEquals(subject.turn + 1, result.turn)
             }
         }
 
@@ -41,7 +40,7 @@ internal object ShiritoriTest : Spek({
             lateinit var game: Shiritori
 
             Given("a non-initial game") {
-                game = initGame.appendWord("aap")
+                game = subject.appendWord("aap")
             }
 
             lateinit var result: Throwable
@@ -61,7 +60,7 @@ internal object ShiritoriTest : Spek({
             lateinit var game: Shiritori
 
             Given("a non-initial game") {
-                game = initGame.appendWord(word1).appendWord(word2)
+                game = subject.appendWord(word1).appendWord(word2)
             }
 
             lateinit var result: Throwable
@@ -80,7 +79,7 @@ internal object ShiritoriTest : Spek({
             lateinit var result: Throwable
 
             When("a player appends a word that's not present in the dictionary") {
-                result = assertFails { initGame.appendWord(word) }
+                result = assertFails { subject.appendWord(word) }
             }
 
             Then("it should fail") {
@@ -92,11 +91,11 @@ internal object ShiritoriTest : Spek({
             lateinit var result: Shiritori
 
             When("all players have had their turn") {
-                result = initGame.appendWord("aap").appendWord("peer")
+                result = subject.appendWord("aap").appendWord("peer")
             }
 
             Then("it should be the first player's turn again") {
-                assertEquals(initGame.currentPlayer, result.currentPlayer)
+                assertEquals(subject.currentPlayer, result.currentPlayer)
             }
         }
 
@@ -105,8 +104,8 @@ internal object ShiritoriTest : Spek({
             lateinit var result: Shiritori
 
             When("a player forfeits") {
-                forfeitingPlayer = initGame.currentPlayer
-                result = initGame.removePlayer(forfeitingPlayer)
+                forfeitingPlayer = subject.currentPlayer!!
+                result = subject.removePlayer(forfeitingPlayer)
             }
 
             Then("he should be removed from the game") {
@@ -126,7 +125,7 @@ internal object ShiritoriTest : Spek({
             }
 
             When("a player forfeits") {
-                result = initGame.removePlayer()
+                result = subject.removePlayer()
             }
 
             Then("it should have one remaining player") {

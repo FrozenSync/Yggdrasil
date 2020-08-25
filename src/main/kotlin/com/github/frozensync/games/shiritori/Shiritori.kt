@@ -20,9 +20,9 @@ internal data class Shiritori(
     val words: Set<String> = persistentSetOf(),
     val currentWord: String? = null,
     val turn: Int = 1,
-    @Transient val timer: DisqualificationTimer?,
+    @Transient val timer: DisqualificationTimer? = null,
 ) {
-    suspend fun appendWord(word: String): Shiritori {
+    fun appendWord(word: String): Shiritori {
         when {
             isFinished() -> return this
             currentWord != null && currentWord.last() != word.first() -> throw InvalidWordException(""""$word" does not start with the last letter of "$currentWord".""")
