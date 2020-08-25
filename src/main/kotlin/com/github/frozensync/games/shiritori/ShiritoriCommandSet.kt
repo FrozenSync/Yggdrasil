@@ -131,22 +131,6 @@ internal class ShiritoriCommandSet(
             }
             channel.createMessage(message).awaitFirst()
         }
-
-        this["snakestats"] = { event ->
-            val channel = event.message.channel.awaitFirst()
-            val channelId = channel.id.asLong()
-
-            val message = when (val game = shiritoriRepository.findById(channelId)) {
-                null -> NO_GAME_FOUND
-                else -> {
-                    val statistics = game.computeStatistics()
-                    """Length: ${statistics.snakeLength}
-                        |Number of words: ${statistics.numberOfWords}
-                    """.trimMargin()
-                }
-            }
-            channel.createMessage(message).awaitFirst()
-        }
     }
 
     private fun createTurnMessage(game: Shiritori) =
