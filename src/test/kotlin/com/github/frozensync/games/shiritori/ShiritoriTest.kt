@@ -105,7 +105,7 @@ internal object ShiritoriTest : Spek({
             lateinit var result: Shiritori
 
             When("a player forfeits") {
-                forfeitingPlayer = initGame.currentPlayer
+                forfeitingPlayer = initGame.currentPlayer!!
                 result = initGame.removePlayer(forfeitingPlayer)
             }
 
