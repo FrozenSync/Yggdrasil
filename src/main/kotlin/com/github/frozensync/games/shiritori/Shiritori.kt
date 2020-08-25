@@ -20,7 +20,7 @@ internal data class Shiritori(
     val words: Set<String> = persistentSetOf(),
     val currentWord: String? = null,
     val turn: Int = 1,
-    @Transient val timer: DisqualificationTimer?,
+    @Transient val timer: DisqualificationTimer? = null,
 ) {
     fun appendWord(word: String): Shiritori {
         when {
