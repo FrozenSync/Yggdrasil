@@ -17,10 +17,14 @@ git clone https://github.com/FrozenSync/Yggdrasil.git
 # By Docker
 docker run --name some-mongo -d mongo:tag
 ```
+- Create two secrets `discord_token` and `mongodb_uri` using Docker.
+```shell script
+printf "Replace with token" | docker secret create discord_token -
+printf "Replace with uri" | docker secret create mongodb_uri -
+```
 - Start the bot.
 ```shell script
-docker build . yggdrasil:latest
-docker run yggdrasil -e "YGGDRASIL_TOKEN=your_token" -e "MONGODB_URI=your_uri"
+docker-compose up
 ```
 
 ## Technologies
@@ -29,3 +33,4 @@ docker run yggdrasil -e "YGGDRASIL_TOKEN=your_token" -e "MONGODB_URI=your_uri"
 - Koin
 - Spek
 - Docker
+- MongoDB (Atlas)
