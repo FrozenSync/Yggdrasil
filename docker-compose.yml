@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    environment:
+      DISCORD_TOKEN_FILE: /run/secrets/discord_token
+      MONGODB_URI_FILE: /run/secrets/mongodb_uri
+    secrets:
+      - discord_token
+      - mongodb_uri
+
+secrets:
+  discord_token:
+    file: discord_token.txt
+  mongodb_uri:
+    file: mongodb_uri.txt
