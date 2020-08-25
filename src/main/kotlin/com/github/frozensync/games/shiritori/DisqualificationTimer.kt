@@ -22,7 +22,7 @@ internal class DisqualificationTimer(
 
     private var job: Deferred<Unit>? = null
 
-    suspend fun start(id: Long) {
+    fun start(id: Long) {
         job?.cancel()
         job = GlobalScope.async {
             delay(time)
