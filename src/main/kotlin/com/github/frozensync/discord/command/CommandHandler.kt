@@ -1,6 +1,6 @@
 package com.github.frozensync.discord.command
 
-import com.github.frozensync.games.wordsnake.WordSnakeCommandSet
+import com.github.frozensync.games.shiritori.ShiritoriCommandSet
 import com.github.frozensync.HealthCheckCommandSet
 import com.github.frozensync.FunCommandSet
 import discord4j.core.`object`.entity.Message
@@ -19,7 +19,7 @@ object CommandHandler : KoinComponent {
     private val commandRepository = CommandRegistry
         .register(HealthCheckCommandSet())
         .register(FunCommandSet())
-        .register(get<WordSnakeCommandSet>())
+        .register(get<ShiritoriCommandSet>())
 
     /**
      * Listens to incoming [MessageCreateEvent]s and execute the containing command.

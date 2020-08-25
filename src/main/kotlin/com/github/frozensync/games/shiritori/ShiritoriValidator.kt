@@ -1,14 +1,14 @@
-package com.github.frozensync.games.wordsnake
+package com.github.frozensync.games.shiritori
 
 import com.github.frozensync.validation.Errors
 import com.github.frozensync.validation.Validator
 import mu.KotlinLogging
 
-internal object WordSnakeValidator : Validator<WordSnake> {
+internal object ShiritoriValidator : Validator<Shiritori> {
 
     private val logger = KotlinLogging.logger { }
 
-    override fun validate(target: WordSnake, errors: Errors): Errors {
+    override fun validate(target: Shiritori, errors: Errors): Errors {
         logger.entry(target, errors)
         var result = errors
 

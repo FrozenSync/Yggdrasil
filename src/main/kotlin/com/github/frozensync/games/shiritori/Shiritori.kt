@@ -1,4 +1,4 @@
-package com.github.frozensync.games.wordsnake
+package com.github.frozensync.games.shiritori
 
 import kotlinx.collections.immutable.persistentSetOf
 import org.bson.codecs.pojo.annotations.BsonId
@@ -13,7 +13,7 @@ private val DICTIONARY: Set<String> by lazy {
         ?: throw IllegalStateException("Cannot load dictionary")
 }
 
-internal data class WordSnake(
+internal data class Shiritori(
     @BsonId val id: Long,
     val players: List<Player>,
     val currentPlayer: Player? = players.firstOrNull(),
@@ -22,7 +22,7 @@ internal data class WordSnake(
     val turn: Int = 1,
     @Transient val timer: DisqualificationTimer?,
 ) {
-    suspend fun appendWord(word: String): WordSnake {
+    suspend fun appendWord(word: String): Shiritori {
         when {
             isFinished() -> return this
             currentWord != null && currentWord.last() != word.first() -> throw InvalidWordException(""""$word" does not start with the last letter of "$currentWord".""")
@@ -52,7 +52,7 @@ internal data class WordSnake(
     /**
      * Returns a new instance with [player] removed from the game. Returns the same instance if the game is already finished.
      */
-    fun removePlayer(player: Player? = currentPlayer): WordSnake {
+    fun removePlayer(player: Player? = currentPlayer): Shiritori {
         if (player == null || isFinished()) return this
 
         return copy(
@@ -66,10 +66,10 @@ internal data class WordSnake(
      */
     fun isFinished() = players.size == 1
 
-    fun computeStatistics() = WordSnakeStatistics(this)
+    fun computeStatistics() = ShiritoriStatistics(this)
 }
 
-internal class WordSnakeStatistics(game: WordSnake) {
+internal class ShiritoriStatistics(game: Shiritori) {
     val numberOfWords: Int = game.turn - 1
     val snakeLength: Int = game.words.fold(0) { acc, word -> acc + word.length }
 }

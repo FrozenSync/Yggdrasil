@@ -1,4 +1,4 @@
-package com.github.frozensync.games.wordsnake
+package com.github.frozensync.games.shiritori
 
 import com.github.frozensync.discord.command.Command
 import com.github.frozensync.discord.command.CommandArgs
@@ -17,19 +17,19 @@ import mu.KotlinLogging
 private const val GAME_FOUND = "Found an on-going game in this channel. Please finish it before creating a new one."
 private const val NO_GAME_FOUND = "No game found in this channel. Please create one before playing."
 
-internal class WordSnakeCommandSet(
+internal class ShiritoriCommandSet(
     private val discordClient: DiscordClient,
-    private val wordSnakeRepository: WordSnakeRepository
+    private val shiritoriRepository: ShiritoriRepository
 ) : CommandSet {
 
     private val logger = KotlinLogging.logger { }
 
-    private val gameOverNotifications = Channel<WordSnake>(Channel.BUFFERED)
+    private val gameOverNotifications = Channel<Shiritori>(Channel.BUFFERED)
     private val gameOverListener = GlobalScope.async {
         gameOverNotifications.consumeEach {
             logger.info { "Game over: $it" }
 
-            wordSnakeRepository.delete(it)
+            shiritoriRepository.delete(it)
 
             val channelId = Snowflake.of(it.id)
             val channel = discordClient.getChannelById(channelId)
@@ -43,20 +43,20 @@ internal class WordSnakeCommandSet(
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 
-            if (wordSnakeRepository.existsById(channelId)) {
+            if (shiritoriRepository.existsById(channelId)) {
                 channel.createMessage(GAME_FOUND)
                 return@h
             }
 
             val players = event.message.userMentionIds.map { Player(it.asLong()) }
-            val timer = DisqualificationTimer(3000L, wordSnakeRepository, gameOverNotifications)
-            val result = WordSnake(channelId, players, timer = timer)
-            val errors = WordSnakeValidator.validate(result)
+            val timer = DisqualificationTimer(3000L, shiritoriRepository, gameOverNotifications)
+            val result = Shiritori(channelId, players, timer = timer)
+            val errors = ShiritoriValidator.validate(result)
             if (errors.hasErrors()) {
                 channel.createMessage(errors.getReasons()).awaitSingle()
                 return@h
             }
-            wordSnakeRepository.save(result)
+            shiritoriRepository.save(result)
 
             logger.info { "New game: $result" }
 
@@ -74,7 +74,7 @@ internal class WordSnakeCommandSet(
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 
-            val game = wordSnakeRepository.findById(channelId)
+            val game = shiritoriRepository.findById(channelId)
             if (game == null) {
                 channel.createMessage(NO_GAME_FOUND).awaitFirst()
                 return@h
@@ -86,7 +86,7 @@ internal class WordSnakeCommandSet(
 
             val message = try { // TODO replace with Either<>
                 val result = game.appendWord(word)
-                wordSnakeRepository.save(result)
+                shiritoriRepository.save(result)
 
                 createTurnMessage(result)
             } catch (e: InvalidWordException) {
@@ -100,7 +100,7 @@ internal class WordSnakeCommandSet(
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 
-            val game = wordSnakeRepository.findById(channelId)
+            val game = shiritoriRepository.findById(channelId)
             if (game == null) {
                 channel.createMessage(NO_GAME_FOUND).awaitFirst()
                 return@h
@@ -109,10 +109,10 @@ internal class WordSnakeCommandSet(
             val message = try {
                 val result = game.removePlayer(player)
                 if (result.isFinished()) {
-                    wordSnakeRepository.delete(result)
+                    shiritoriRepository.delete(result)
                     createVictoryMessage(result)
                 } else {
-                    wordSnakeRepository.save(result)
+                    shiritoriRepository.save(result)
                     createTurnMessage(result)
                 }
             } catch (e: IllegalArgumentException) {
@@ -125,7 +125,7 @@ internal class WordSnakeCommandSet(
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 
-            val message = when (val game = wordSnakeRepository.findById(channelId)) {
+            val message = when (val game = shiritoriRepository.findById(channelId)) {
                 null -> NO_GAME_FOUND
                 else -> createTurnMessage(game)
             }
@@ -136,7 +136,7 @@ internal class WordSnakeCommandSet(
             val channel = event.message.channel.awaitFirst()
             val channelId = channel.id.asLong()
 
-            val message = when (val game = wordSnakeRepository.findById(channelId)) {
+            val message = when (val game = shiritoriRepository.findById(channelId)) {
                 null -> NO_GAME_FOUND
                 else -> {
                     val statistics = game.computeStatistics()
@@ -149,11 +149,11 @@ internal class WordSnakeCommandSet(
         }
     }
 
-    private fun createTurnMessage(game: WordSnake) =
+    private fun createTurnMessage(game: Shiritori) =
         """Word: ${game.currentWord}
             |Turn ${game.turn}: ${game.currentPlayer?.id?.let { UserId(it) }}
         """.trimMargin()
 
-    private fun createVictoryMessage(game: WordSnake) =
+    private fun createVictoryMessage(game: Shiritori) =
         "Congratulations ${game.currentPlayer?.id?.let { UserId(it) }}, you won!"
 }

@@ -1,4 +1,4 @@
-package com.github.frozensync.games.wordsnake
+package com.github.frozensync.games.shiritori
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -8,14 +8,14 @@ import kotlinx.coroutines.delay
 
 internal class DisqualificationTimer(
     private val time: Long, // ms
-    private val wordSnakeRepository: WordSnakeRepository,
-    private val notificationChannel: Channel<WordSnake>,
+    private val shiritoriRepository: ShiritoriRepository,
+    private val notificationChannel: Channel<Shiritori>,
 ) {
     private val action: suspend (Long) -> Unit = { id ->
-        wordSnakeRepository.findById(id)
+        shiritoriRepository.findById(id)
             ?.removePlayer()
             ?.let {
-                wordSnakeRepository.save(it)
+                shiritoriRepository.save(it)
                 notificationChannel.send(it)
             }
     }
