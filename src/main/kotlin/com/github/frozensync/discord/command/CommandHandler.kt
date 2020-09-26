@@ -3,6 +3,7 @@ package com.github.frozensync.discord.command
 import com.github.frozensync.games.shiritori.ShiritoriCommandSet
 import com.github.frozensync.HealthCheckCommandSet
 import com.github.frozensync.FunCommandSet
+import com.github.frozensync.music.MusicCommandSet
 import discord4j.core.`object`.entity.Message
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.flow.Flow
@@ -20,6 +21,7 @@ object CommandHandler : KoinComponent {
         .register(HealthCheckCommandSet())
         .register(FunCommandSet())
         .register(get<ShiritoriCommandSet>())
+        .register(get<MusicCommandSet>())
 
     /**
      * Listens to incoming [MessageCreateEvent]s and execute the containing command.
