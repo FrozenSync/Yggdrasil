@@ -19,7 +19,7 @@ val kotlinCoroutinesVersion by extra("1.3.9")
 val kotlinCollectionsImmutableVersion by extra("0.3.2")
 
 val koinVersion by extra("2.1.6")
-val discord4jVersion by extra("3.1.0")
+val discord4jVersion by extra("3.1.1")
 val kMongoVersion by extra("4.1.1")
 val lavaPlayerVersion by extra("1.3.50")
 
