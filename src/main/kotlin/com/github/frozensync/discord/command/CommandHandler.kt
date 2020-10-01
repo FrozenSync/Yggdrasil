@@ -1,42 +1,34 @@
 package com.github.frozensync.discord.command
 
-import com.github.frozensync.games.shiritori.ShiritoriCommandSet
-import com.github.frozensync.HealthCheckCommandSet
-import com.github.frozensync.FunCommandSet
-import com.github.frozensync.music.MusicCommandSet
+import com.github.frozensync.discord.cli.yggdrasilCli
 import discord4j.core.`object`.entity.Message
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.reactive.awaitFirst
 import mu.KotlinLogging
 import org.koin.core.KoinComponent
-import org.koin.core.get
 
 object CommandHandler : KoinComponent {
 
     private val logger = KotlinLogging.logger { }
-
-    private val commandRepository = CommandRegistry
-        .register(HealthCheckCommandSet())
-        .register(FunCommandSet())
-        .register(get<ShiritoriCommandSet>())
-        .register(get<MusicCommandSet>())
 
     /**
      * Listens to incoming [MessageCreateEvent]s and execute the containing command.
      */
     suspend fun executeCommands(flow: Flow<MessageCreateEvent>) = flow
         .filter { it.message.hasHumanAuthor() }
-        .filter { it.message.containsPrefix("!") }
+        .filter { it.message.containsPrefix("""<@!${it.client.selfId.asString()}>""") }
         .collect { executeCommand(it) }
 
     private suspend fun executeCommand(event: MessageCreateEvent) {
         logger.entry(event)
 
-        val commandName = event.message.content.parseCommandName()
-        val command = commandRepository.findByName(commandName)
-        command?.invoke(event)
+        val channel = event.message.channel.awaitFirst()
+        val args = event.message.content.split(" ").drop(1).also { logger.debug { "Args: $it" } }
+
+        yggdrasilCli.execute(channel, args)
 
         logger.exit()
     }
@@ -44,6 +36,4 @@ object CommandHandler : KoinComponent {
     private fun Message.hasHumanAuthor(): Boolean = author.map { !it.isBot }.orElse(false)
 
     private fun Message.containsPrefix(prefix: String) = content.startsWith(prefix)
-
-    private fun String.parseCommandName() = this.substringBefore(' ').removePrefix("!")
 }
