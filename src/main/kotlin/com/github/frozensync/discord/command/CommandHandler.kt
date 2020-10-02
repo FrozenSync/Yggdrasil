@@ -1,16 +1,14 @@
 package com.github.frozensync.discord.command
 
-import com.github.frozensync.discord.cli.yggdrasilCli
+import com.github.frozensync.discord.cli.YggdrasilCli
 import discord4j.core.`object`.entity.Message
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.reactive.awaitFirst
 import mu.KotlinLogging
-import org.koin.core.KoinComponent
 
-object CommandHandler : KoinComponent {
+object CommandHandler {
 
     private val logger = KotlinLogging.logger { }
 
@@ -25,10 +23,8 @@ object CommandHandler : KoinComponent {
     private suspend fun executeCommand(event: MessageCreateEvent) {
         logger.entry(event)
 
-        val channel = event.message.channel.awaitFirst()
         val args = event.message.content.split(" ").drop(1).also { logger.debug { "Args: $it" } }
-
-        yggdrasilCli.execute(channel, args)
+        YggdrasilCli.withContext(event).execute(args)
 
         logger.exit()
     }

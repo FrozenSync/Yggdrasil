@@ -1,7 +1,6 @@
 package com.github.frozensync.discord.cli
 
 import com.github.ajalt.clikt.core.*
-import discord4j.core.`object`.entity.channel.MessageChannel
 
 abstract class AbstractDiscordCommand(
     help: String = "",
@@ -12,11 +11,7 @@ abstract class AbstractDiscordCommand(
     epilog,
     name
 ) {
-    fun execute(channel: MessageChannel, argv: List<String> = emptyList()) {
-        context {
-            console = DiscordConsole(channel)
-        }
-
+    fun execute(argv: List<String> = emptyList()) {
         try {
             parse(argv)
         } catch (e: ProgramResult) {

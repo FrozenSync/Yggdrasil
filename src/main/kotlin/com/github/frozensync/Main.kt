@@ -3,7 +3,6 @@ package com.github.frozensync
 import com.github.frozensync.discord.command.CommandHandler
 import com.github.frozensync.discord.discordModule
 import com.github.frozensync.games.shiritori.shiritoriModule
-import com.github.frozensync.music.musicModule
 import com.github.frozensync.persistence.mongodb.mongoModule
 import discord4j.core.DiscordClient
 import discord4j.core.event.domain.Event
@@ -22,7 +21,7 @@ private val logger = KotlinLogging.logger { }
 fun main() = runBlocking<Unit> {
     val koinApplication = startKoin {
         environmentProperties()
-        modules(discordModule, shiritoriModule, mongoModule, musicModule)
+        modules(discordModule, shiritoriModule, mongoModule)
     }
     val koin = koinApplication.koin
 
