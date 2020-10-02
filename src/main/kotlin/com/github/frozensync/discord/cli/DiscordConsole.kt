@@ -14,7 +14,7 @@ class DiscordConsole(private val channel: MessageChannel) : CliktConsole {
     override fun print(text: String, error: Boolean) {
         logger.entry(text, error)
 
-        val onSuccess: (result: Message) -> Unit = { logger.trace { "Sent $it" } }
+        val onSuccess: (result: Message) -> Unit = {} // do nothing
         val onError: (e: Throwable) -> Unit = { e -> logger.catching(e) }
 
         channel.createMessage(text).subscribe(onSuccess, onError)

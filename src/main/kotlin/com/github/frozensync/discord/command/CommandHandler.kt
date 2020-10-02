@@ -23,7 +23,7 @@ object CommandHandler {
     private suspend fun executeCommand(event: MessageCreateEvent) {
         logger.entry(event)
 
-        val args = event.message.content.split(" ").drop(1).also { logger.debug { "Args: $it" } }
+        val args = event.message.content.split(" ").drop(1).also { logger.debug { "args=$it" } }
         YggdrasilCli.withContext(event).execute(args)
 
         logger.exit()
