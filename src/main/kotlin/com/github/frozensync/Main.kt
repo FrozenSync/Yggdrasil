@@ -1,6 +1,6 @@
 package com.github.frozensync
 
-import com.github.frozensync.discord.command.CommandHandler
+import com.github.frozensync.command.CommandHandler
 import com.github.frozensync.discord.discordModule
 import com.github.frozensync.games.shiritori.shiritoriModule
 import com.github.frozensync.persistence.mongodb.mongoModule

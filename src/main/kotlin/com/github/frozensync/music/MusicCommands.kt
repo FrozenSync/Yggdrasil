@@ -1,8 +1,8 @@
 package com.github.frozensync.music
 
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.frozensync.discord.cli.AbstractCommand
-import com.github.frozensync.discord.cli.AbstractCommandCategory
+import com.github.frozensync.command.cli.AbstractCommand
+import com.github.frozensync.command.cli.AbstractCommandCategory
 import discord4j.core.`object`.VoiceState
 import discord4j.core.event.domain.VoiceStateUpdateEvent
 import discord4j.core.event.domain.message.MessageCreateEvent

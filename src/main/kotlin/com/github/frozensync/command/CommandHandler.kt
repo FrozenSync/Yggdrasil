@@ -1,6 +1,6 @@
-package com.github.frozensync.discord.command
+package com.github.frozensync.command
 
-import com.github.frozensync.discord.cli.yggdrasilCli
+import com.github.frozensync.command.cli.yggdrasilCli
 import discord4j.core.`object`.entity.Message
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.flow.Flow

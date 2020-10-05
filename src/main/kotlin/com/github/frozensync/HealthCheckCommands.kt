@@ -1,7 +1,7 @@
 package com.github.frozensync
 
-import com.github.frozensync.discord.cli.AbstractCommand
-import com.github.frozensync.discord.cli.AbstractCommandCategory
+import com.github.frozensync.command.cli.AbstractCommand
+import com.github.frozensync.command.cli.AbstractCommandCategory
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.reactive.awaitFirst
 import java.lang.management.ManagementFactory

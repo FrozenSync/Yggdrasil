@@ -1,4 +1,4 @@
-package com.github.frozensync.discord.cli
+package com.github.frozensync.command.cli
 
 import com.github.ajalt.clikt.core.subcommands
 import com.github.frozensync.*

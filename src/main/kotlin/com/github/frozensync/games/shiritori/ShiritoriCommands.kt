@@ -6,8 +6,8 @@ import com.github.ajalt.clikt.parameters.options.default
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.types.long
 import com.github.frozensync.discord.UserId
-import com.github.frozensync.discord.cli.AbstractCommand
-import com.github.frozensync.discord.cli.AbstractCommandCategory
+import com.github.frozensync.command.cli.AbstractCommand
+import com.github.frozensync.command.cli.AbstractCommandCategory
 import discord4j.common.util.Snowflake
 import discord4j.core.event.domain.message.MessageCreateEvent
 import kotlinx.coroutines.channels.Channel
