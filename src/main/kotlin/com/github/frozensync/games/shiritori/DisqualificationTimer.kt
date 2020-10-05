@@ -14,8 +14,10 @@ internal class DisqualificationTimer(
         shiritoriRepository.findById(id)
             ?.removePlayer()
             ?.let {
-                shiritoriRepository.save(it)
-                gameOverListener.sendGameOver(it)
+                if (it.isFinished())
+                    gameOverListener.sendGameOver(it)
+                else
+                    shiritoriRepository.save(it)
             }
     }
 
