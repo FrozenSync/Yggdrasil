@@ -12,7 +12,7 @@ import java.time.Duration
 
 class Music : AbstractCommandCategory()
 
-class JoinCommand : AbstractCommand() {
+class JoinVoiceChannelCommand : AbstractCommand(name = "join") {
 
     private val logger = KotlinLogging.logger { }
 
@@ -57,7 +57,7 @@ class JoinCommand : AbstractCommand() {
     }
 }
 
-class PlayCommand : AbstractCommand() {
+class PlayMusicCommand : AbstractCommand(name = "play") {
 
     private val songUri by argument(name = "song")
 
