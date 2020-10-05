@@ -10,7 +10,6 @@ import com.github.frozensync.command.cli.AbstractCommand
 import com.github.frozensync.command.cli.AbstractCommandCategory
 import discord4j.common.util.Snowflake
 import discord4j.core.event.domain.message.MessageCreateEvent
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.reactive.awaitSingle
 import mu.KotlinLogging
@@ -27,7 +26,7 @@ class NewGameCommand : AbstractCommand(), KoinComponent {
     private val logger = KotlinLogging.logger { }
 
     private val shiritoriRepository: ShiritoriRepository = get()
-    private val gameOverNotifications: Channel<Shiritori> = get() // TODO bugged?
+    private val gameOverListener: GameOverListener = get()
 
     private val timerDuration: Long by option("-t", "--timer", help = "Timer in ms").long().default(30000L)
     private val playerMentions: List<String> by argument().multiple(required = true)
@@ -46,7 +45,7 @@ class NewGameCommand : AbstractCommand(), KoinComponent {
         val players = playerMentions
             .map { Snowflake.asLong(it.removeSurrounding("<@!", ">")) }
             .map { Player(it) }
-        val timer = DisqualificationTimer(timerDuration, shiritoriRepository, gameOverNotifications)
+        val timer = DisqualificationTimer(timerDuration, shiritoriRepository, gameOverListener)
         val result = Shiritori(channelId, players, timer = timer)
         val errors = ShiritoriValidator.validate(result)
         if (errors.hasErrors()) {
