@@ -1,8 +1,10 @@
 package com.github.frozensync.discord.cli
 
 import com.github.ajalt.clikt.core.*
+import discord4j.core.event.domain.message.MessageCreateEvent
+import mu.KotlinLogging
 
-abstract class AbstractDiscordCommand(
+abstract class AbstractCommand(
     help: String = "",
     epilog: String = "",
     name: String? = null,
@@ -11,9 +13,18 @@ abstract class AbstractDiscordCommand(
     epilog,
     name
 ) {
-    fun execute(argv: List<String> = emptyList()) {
+    private val logger = KotlinLogging.logger { }
+
+    private val invokedCommands by findObject<MutableList<AbstractCommand>>()
+
+    abstract suspend fun execute(event: MessageCreateEvent)
+
+    fun parse(message: String): AbstractCommand? {
+        val argv = message.split(" ").dropPrefix().also { logger.debug { "argv=$it" } }
+
         try {
             parse(argv)
+            return this
         } catch (e: ProgramResult) {
             echo(e.statusCode)
         } catch (e: PrintHelpMessage) {
@@ -30,5 +41,13 @@ abstract class AbstractDiscordCommand(
         } catch (e: Abort) {
             echo(currentContext.localization.aborted(), err = true)
         }
+
+        return null
+    }
+
+    private fun List<String>.dropPrefix() = drop(1)
+
+    override fun run() {
+        invokedCommands?.add(this)
     }
 }

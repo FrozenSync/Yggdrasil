@@ -1,8 +1,8 @@
 package com.github.frozensync.music
 
-import com.github.ajalt.clikt.core.requireObject
 import com.github.ajalt.clikt.parameters.arguments.argument
-import com.github.frozensync.discord.cli.AbstractDiscordCommand
+import com.github.frozensync.discord.cli.AbstractCommand
+import com.github.frozensync.discord.cli.AbstractCommandCategory
 import discord4j.core.`object`.VoiceState
 import discord4j.core.event.domain.VoiceStateUpdateEvent
 import discord4j.core.event.domain.message.MessageCreateEvent
@@ -10,17 +10,13 @@ import mu.KotlinLogging
 import reactor.core.publisher.Mono
 import java.time.Duration
 
-class Music : AbstractDiscordCommand() {
-    override fun run() = Unit
-}
+class Music : AbstractCommandCategory()
 
-class JoinCommand : AbstractDiscordCommand() {
+class JoinCommand : AbstractCommand() {
 
     private val logger = KotlinLogging.logger { }
 
-    private val event by requireObject<MessageCreateEvent>()
-
-    override fun run() {
+    override suspend fun execute(event: MessageCreateEvent) {
         logger.entry()
 
         val member = event.member.orElse(null) ?: return
@@ -61,13 +57,11 @@ class JoinCommand : AbstractDiscordCommand() {
     }
 }
 
-class PlayCommand : AbstractDiscordCommand() {
-
-    private val event by requireObject<MessageCreateEvent>()
+class PlayCommand : AbstractCommand() {
 
     private val songUri by argument(name = "song")
 
-    override fun run() {
+    override suspend fun execute(event: MessageCreateEvent) {
         val guildId = event.guildId.orElse(null) ?: return
         val scheduler = GuildAudioManager.of(guildId).scheduler
 

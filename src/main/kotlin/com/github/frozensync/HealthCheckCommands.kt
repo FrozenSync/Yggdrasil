@@ -1,21 +1,23 @@
 package com.github.frozensync
 
-import com.github.frozensync.discord.cli.AbstractDiscordCommand
+import com.github.frozensync.discord.cli.AbstractCommand
+import com.github.frozensync.discord.cli.AbstractCommandCategory
+import discord4j.core.event.domain.message.MessageCreateEvent
+import kotlinx.coroutines.reactive.awaitFirst
 import java.lang.management.ManagementFactory
 import java.time.Duration
 
-class HealthCheck : AbstractDiscordCommand(name = "health") {
-    override fun run() = Unit
-}
+class HealthCheck : AbstractCommandCategory(name = "health")
 
-class PingCommand : AbstractDiscordCommand() {
-    override fun run() {
-        echo("Pong!")
+class PingCommand : AbstractCommand() {
+    override suspend fun execute(event: MessageCreateEvent) {
+        val channel = event.message.channel.awaitFirst()
+        channel.createMessage("Pong!").awaitFirst()
     }
 }
 
-class UptimeCommand : AbstractDiscordCommand() {
-    override fun run() {
+class UptimeCommand : AbstractCommand() {
+    override suspend fun execute(event: MessageCreateEvent) {
         val uptime = ManagementFactory.getRuntimeMXBean().uptime
         val duration = Duration.ofMillis(uptime)
         val days = duration.toDaysPart()
@@ -23,6 +25,7 @@ class UptimeCommand : AbstractDiscordCommand() {
         val minutes = duration.toMinutesPart()
         val seconds = duration.toSecondsPart()
 
-        echo("""$days day(s), $hours hour(s), $minutes minute(s), $seconds second(s)""")
+        val channel = event.message.channel.awaitFirst()
+        channel.createMessage("""$days day(s), $hours hour(s), $minutes minute(s), $seconds second(s)""").awaitFirst()
     }
 }
