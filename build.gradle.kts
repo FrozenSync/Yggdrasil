@@ -22,6 +22,7 @@ val koinVersion by extra("2.1.6")
 val discord4jVersion by extra("3.1.1")
 val kMongoVersion by extra("4.1.1")
 val lavaPlayerVersion by extra("1.3.50")
+val cliktVersion by extra("3.0.1")
 
 val kotlinLoggingVersion by extra("1.8.3")
 val logbackVersion by extra("1.2.3")
@@ -41,6 +42,7 @@ dependencies {
     implementation("com.discord4j:discord4j-core:$discord4jVersion")
     implementation("org.litote.kmongo:kmongo-coroutine-native:${kMongoVersion}")
     implementation("com.sedmelluq:lavaplayer:${lavaPlayerVersion}")
+    implementation("com.github.ajalt.clikt:clikt:${cliktVersion}")
 
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("io.github.microutils:kotlin-logging:$kotlinLoggingVersion")

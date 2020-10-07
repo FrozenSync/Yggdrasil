@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="FLOW" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>TRACE</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36}:%L %M - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -10,7 +25,9 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="com.github.frozensync" level="TRACE"/>
+    <logger name="com.github.frozensync" level="TRACE">
+        <appender-ref ref="FLOW"/>
+    </logger>
 
     <logger name="org.mongodb.driver" level="ERROR"/>
 </configuration>
