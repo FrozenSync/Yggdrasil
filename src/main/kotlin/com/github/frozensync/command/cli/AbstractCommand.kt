@@ -1,5 +1,8 @@
 package com.github.frozensync.command.cli
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.github.ajalt.clikt.core.*
 import discord4j.core.event.domain.message.MessageCreateEvent
 import mu.KotlinLogging
@@ -19,30 +22,23 @@ abstract class AbstractCommand(
 
     abstract suspend fun execute(event: MessageCreateEvent)
 
-    fun parse(message: String): AbstractCommand? {
+    internal fun parse(message: String): Either<CliMessage, AbstractCommand> {
         val argv = message.split(" ").dropPrefix().also { logger.debug { "argv=$it" } }
 
-        try {
+        return try {
             parse(argv)
-            return this
-        } catch (e: ProgramResult) {
-            echo(e.statusCode)
+            return this.right()
         } catch (e: PrintHelpMessage) {
-            echo(e.command.getFormattedHelp())
-        } catch (e: PrintCompletionMessage) {
-            val s = if (e.forceUnixLineEndings) "\n" else currentContext.console.lineSeparator
-            echo(e.message, lineSeparator = s)
+            CliMessage(e.command.getFormattedHelp()).left()
         } catch (e: PrintMessage) {
-            echo(e.message)
+            CliMessage(e.message ?: "").left()
         } catch (e: UsageError) {
-            echo(e.helpMessage(), err = true)
+            CliMessage(e.helpMessage(), error = true).left()
         } catch (e: CliktError) {
-            echo(e.message, err = true)
+            CliMessage(e.message ?: "", error = true).left()
         } catch (e: Abort) {
-            echo(currentContext.localization.aborted(), err = true)
+            CliMessage(currentContext.localization.aborted(), error = true).left()
         }
-
-        return null
     }
 
     private fun List<String>.dropPrefix() = drop(1)
